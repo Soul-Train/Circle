@@ -122,9 +122,15 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .rvtop{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
 .rvgrip{flex:none;color:var(--muted);font-size:1.1rem;line-height:1;padding:2px 4px;
   touch-action:none;cursor:grab;user-select:none}
-.rvrow.open{border:1.5px solid var(--accent);border-radius:10px;background:var(--card);padding:11px}
+.rvrow.open{display:block;border:1.5px solid var(--accent);border-radius:10px;
+  background:var(--card);padding:11px}
+.rvacts{flex-wrap:wrap;row-gap:8px}
 .rvrow.dragging{opacity:.45}
-.rvacts{display:flex;gap:14px;border-top:1px solid var(--line);padding-top:9px;margin-top:10px}
+.rvedit{width:100%;font-size:.95rem;line-height:1.5;border:none;border-bottom:1px solid var(--line);
+  background:transparent;border-radius:0;padding:0 0 6px;margin:0 0 11px;resize:none;overflow:hidden;
+  display:block;font-family:inherit}
+.rvedit:focus{outline:none;border-bottom-color:var(--accent)}
+.rvacts{display:flex;gap:14px;border-top:1px solid var(--line);padding-top:9px;margin-top:10px;flex-wrap:wrap}
 .rvacts button{font-size:.78rem;color:var(--muted);font-weight:600}
 .rvacts button.warn{color:var(--flag);margin-left:auto}
 .seam{display:flex;align-items:center;gap:8px;margin:3px 0}
@@ -835,11 +841,17 @@ function openEl(line){
   d.className = "rvrow open";
   d.dataset.id = line.id;
 
-  const p = document.createElement("p");
-  p.className = "rvtext";
-  p.style.marginBottom = "10px";
-  p.textContent = line.text;
-  d.appendChild(p);
+  // Editable in place. You already tapped the line to get here, so asking for
+  // another tap to start typing is a tap too many.
+  const ta = document.createElement("textarea");
+  ta.className = "rvedit";
+  ta.rows = 1;
+  ta.value = line.text;
+  const grow = () => { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; };
+  // No re-render on input, or the field would lose focus on every keystroke.
+  ta.addEventListener("input", () => { line.text = ta.value; grow(); });
+  d.appendChild(ta);
+  setTimeout(grow, 0);
 
   const chips = document.createElement("div");
   chips.className = "chips";
@@ -862,17 +874,10 @@ function openEl(line){
   const acts = document.createElement("div");
   acts.className = "rvacts";
 
-  const ed = document.createElement("button");
-  ed.textContent = "type instead";
-  ed.addEventListener("click", () => {
-    const v = prompt("Edit this line", line.text);
-    if(v !== null && v.trim()){ line.text = v.trim(); renderReview(); }
-  });
-  acts.appendChild(ed);
-
   const sp = document.createElement("button");
   sp.textContent = "split";
   sp.addEventListener("click", () => {
+    if(!line.text.trim()) return toast("That line is empty.");
     rv.splitId = line.id; rv.openId = null;
     rv.breaks = new Set(); rv.drop = new Set();
     // Known fillers start struck. Tap to keep any of them.
@@ -1105,6 +1110,9 @@ $("skipBtn").addEventListener("click", () => {
 $("saveBtn").addEventListener("click", () => {
   const name = $("cPerson").value.trim();
   if(!name) return toast("Who is this about?");
+  if(!rv.lines.length) return toast("Nothing to save.");
+
+  rv.lines = rv.lines.filter(l => l.text.trim());
   if(!rv.lines.length) return toast("Nothing to save.");
 
   const person = ensurePerson(name);
