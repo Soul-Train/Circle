@@ -563,48 +563,97 @@ document.querySelectorAll("[data-back]").forEach(b =>
 
 /* ---------------- voice ---------------- */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-let rec = null, listening = false;
+
+// how long a pause is allowed before capture stops on its own
+const SILENCE_MS = 5000;
+
+let rec = null;          // the recognizer
+let wantListening = false; // true from the moment you tap until you tap again or fall silent
+let baseText = "";       // whatever was in the box before this session started
+let silenceTimer = null;
+let restartTimer = null;
+
+function setHint(msg){ $("micHint").textContent = msg; }
+
+function micIdle(msg){
+  wantListening = false;
+  clearTimeout(silenceTimer);
+  clearTimeout(restartTimer);
+  $("micBtn").classList.remove("live");
+  $("micBtn").setAttribute("aria-label","Start voice capture");
+  setHint(msg || "Tap and start talking");
+}
+
+function armSilence(){
+  clearTimeout(silenceTimer);
+  silenceTimer = setTimeout(() => {
+    if(!wantListening) return;
+    wantListening = false;          // stop the auto restart, then close the mic
+    try{ rec.stop(); }catch(e){}
+    micIdle("Stopped after a pause. Tap to add more.");
+  }, SILENCE_MS);
+}
 
 if(!SR){
-  $("micHint").textContent = "Voice is not supported in this browser. Use your keyboard's dictation key instead.";
+  setHint("Voice is not supported in this browser. Use your keyboard's dictation key instead.");
   $("micBtn").disabled = true;
 }else{
   rec = new SR();
   rec.continuous = true;
   rec.interimResults = true;
   rec.lang = "en-US";
-  let settled = "";
 
   rec.onstart = () => {
-    listening = true;
-    settled = $("captureText").value ? $("captureText").value.trim() + " " : "";
     $("micBtn").classList.add("live");
     $("micBtn").setAttribute("aria-label","Stop voice capture");
-    $("micHint").textContent = "Listening. Tap again when you're done.";
+    setHint("Listening. Pause for a few seconds, or tap to finish.");
+    armSilence();
   };
+
+  // Rebuild the whole transcript every time. Safari resends earlier phrases,
+  // so appending chunks duplicates them.
   rec.onresult = e => {
-    let interim = "";
-    for(let i = e.resultIndex; i < e.results.length; i++){
+    let settled = "", interim = "";
+    for(let i = 0; i < e.results.length; i++){
       const chunk = e.results[i][0].transcript;
-      if(e.results[i].isFinal) settled += chunk + " "; else interim += chunk;
+      if(e.results[i].isFinal) settled += chunk + " ";
+      else interim += chunk + " ";
     }
-    $("captureText").value = (settled + interim).replace(/\s+/g," ").trim();
+    $("captureText").value = (baseText + settled + interim).replace(/\s+/g," ").trim();
+    armSilence();
   };
+
   rec.onerror = e => {
-    $("micHint").textContent = e.error === "not-allowed"
+    if(e.error === "no-speech") return;        // handled by the silence timer
+    if(e.error === "aborted") return;          // we stopped it ourselves
+    micIdle(e.error === "not-allowed"
       ? "Microphone blocked. Allow it in your browser settings."
-      : "Voice stopped. Tap to try again.";
+      : "Voice stopped. Tap to try again.");
   };
+
+  // The browser ends the session on its own at the first pause. If we still
+  // want to be listening, start a new one and carry the text forward.
   rec.onend = () => {
-    listening = false;
-    $("micBtn").classList.remove("live");
-    $("micBtn").setAttribute("aria-label","Start voice capture");
-    if(!$("micHint").textContent.startsWith("Microphone")) $("micHint").textContent = "Tap and start talking";
+    if(!wantListening){ micIdle(); return; }
+    baseText = $("captureText").value ? $("captureText").value.trim() + " " : "";
+    restartTimer = setTimeout(() => {
+      if(!wantListening) return;
+      try{ rec.start(); }
+      catch(err){ micIdle("Voice stopped. Tap to try again."); }
+    }, 200);
   };
 
   $("micBtn").addEventListener("click", () => {
-    if(listening) rec.stop();
-    else { try{ rec.start(); }catch(e){ /* already starting */ } }
+    if(wantListening){
+      wantListening = false;
+      try{ rec.stop(); }catch(e){}
+      micIdle("Saved. Tap to add more.");
+      return;
+    }
+    wantListening = true;
+    baseText = $("captureText").value ? $("captureText").value.trim() + " " : "";
+    try{ rec.start(); }
+    catch(err){ /* already starting, onstart will fire */ }
   });
 }
 
@@ -612,7 +661,7 @@ if(!SR){
 $("reviewBtn").addEventListener("click", () => {
   const txt = $("captureText").value.trim();
   if(!txt) return toast("Nothing to file yet.");
-  if(listening) rec.stop();
+  if(wantListening){ wantListening = false; try{ rec.stop(); }catch(e){} micIdle(); }
   queue = [parseOne(txt)];
   openConfirm();
 });
