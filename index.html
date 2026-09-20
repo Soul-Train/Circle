@@ -108,6 +108,37 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .picker:empty{display:none}
 .picker .new{color:var(--accent);border-style:dashed;border-color:var(--accent)}
 
+.waiting{display:flex;align-items:center;gap:7px;width:100%;margin-top:13px;padding-top:11px;
+  border-top:1px solid var(--line);color:var(--muted);font-size:.82rem;font-weight:600;text-align:left}
+
+.rvhead{font-size:.8rem;color:var(--muted);font-weight:600;margin:16px 0 8px}
+#rvLines{touch-action:pan-y}
+.rvrow{display:flex;gap:8px;align-items:flex-start;padding:9px 2px;background:var(--paper)}
+.rvrow .rvbody{flex:1;min-width:0}
+.rvtext{font-size:.95rem;line-height:1.5;margin:0;word-wrap:break-word}
+.rvtag{font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:999px;
+  background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.rvtag.none{background:transparent;border:1px solid var(--line);color:var(--muted);font-weight:600}
+.rvtop{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.rvgrip{flex:none;color:var(--muted);font-size:1.1rem;line-height:1;padding:2px 4px;
+  touch-action:none;cursor:grab;user-select:none}
+.rvrow.open{border:1.5px solid var(--accent);border-radius:10px;background:var(--card);padding:11px}
+.rvrow.dragging{opacity:.45}
+.rvacts{display:flex;gap:14px;border-top:1px solid var(--line);padding-top:9px;margin-top:10px}
+.rvacts button{font-size:.78rem;color:var(--muted);font-weight:600}
+.rvacts button.warn{color:var(--flag);margin-left:auto}
+.seam{display:flex;align-items:center;gap:8px;margin:3px 0}
+.seam i{flex:1;height:1px;background:var(--line)}
+.seam button{font-size:.7rem;color:var(--muted);font-weight:700;border:1px solid var(--line);
+  border-radius:999px;padding:2px 10px}
+.words{display:flex;flex-wrap:wrap;align-items:center;font-size:.95rem;line-height:2.1}
+.words .w{padding:0 1px}
+.words .w.off{text-decoration:line-through;color:var(--muted)}
+.words .g{width:3px;height:19px;background:var(--line);margin:0 4px;border-radius:2px;flex:none}
+.words .g.hint{width:4px;height:23px;background:var(--muted)}
+.words .g.on{width:4px;height:23px;background:var(--accent)}
+.rvnote{font-size:.76rem;color:var(--muted);margin:8px 0 0}
+
 .chips{display:flex;flex-wrap:wrap;gap:7px}
 .chip{
   border:1px solid var(--line);background:var(--card);color:var(--muted);
@@ -205,8 +236,10 @@ nav .badge{position:absolute;transform:translate(15px,-4px);background:var(--fla
 
     <textarea id="captureText" class="big" placeholder="Or type it here. &quot;Had lunch with Dave, he's interviewing at Stripe next Thursday and just picked up bouldering.&quot;"></textarea>
     <div class="row" style="margin-top:10px">
-      <button class="btn block" id="reviewBtn">Review and file</button>
+      <button class="btn ghost" id="laterBtn" style="flex:1">Save for later</button>
+      <button class="btn" id="reviewBtn" style="flex:1">Review and file</button>
     </div>
+    <button class="waiting" id="waitingLine" hidden></button>
 
     <hr class="divider">
 
@@ -234,19 +267,12 @@ nav .badge{position:absolute;transform:translate(15px,-4px);background:var(--fla
       <input type="date" id="cDate">
     </label>
 
-    <label class="fld"><span>Note</span>
-      <textarea id="cText" class="big"></textarea>
-    </label>
-
-    <label class="fld"><span>Tags</span></label>
-    <div class="chips" id="cTags" style="margin:-6px 0 16px"></div>
-
     <label class="toggle"><input type="checkbox" id="cSaw">
       <span>I saw them in person<small>Keeps your last-seen date current.</small></span>
     </label>
-    <label class="toggle"><input type="checkbox" id="cLoop">
-      <span>Follow up on this<small>Shows in red until you log how it turned out.</small></span>
-    </label>
+
+    <p class="rvhead" id="rvHead">Tap a line to tag it</p>
+    <div id="rvLines"></div>
 
     <div class="row" style="margin-top:16px">
       <button class="btn ghost" id="skipBtn" hidden>Skip</button>
@@ -305,6 +331,7 @@ nav .badge{position:absolute;transform:translate(15px,-4px);background:var(--fla
   <section id="s-loops" class="screen">
     <h1>Follow up</h1>
     <p class="sub">Things you flagged and have not closed out.</p>
+    <div id="pendList"></div>
     <div id="loopList"></div>
     <div class="empty" id="loopEmpty" hidden>Nothing outstanding. Flag a note with "follow up on this" and it lands here.</div>
     <hr class="divider">
@@ -334,9 +361,9 @@ nav .badge{position:absolute;transform:translate(15px,-4px);background:var(--fla
 "use strict";
 
 /* ---------------- storage ---------------- */
-const VERSION = "0.7";
+const VERSION = "0.8";
 const KEY = "circle.v1";
-let db = { people: [], notes: [] };
+let db = { people: [], notes: [], pending: [] };
 
 function load(){
   try{
@@ -349,6 +376,14 @@ function load(){
   }catch(e){ /* start fresh */ }
   if(!Array.isArray(db.people)) db.people = [];
   if(!Array.isArray(db.notes)) db.notes = [];
+  if(!Array.isArray(db.pending)) db.pending = [];
+  // Notes used to be one row per capture. They are now one row per line, grouped
+  // by captureId, so a paragraph can sit in several category cards without the
+  // whole paragraph showing up in each one.
+  db.notes.forEach(n => {
+    if(!n.captureId){ n.captureId = n.id; n.order = 0; }
+    if(typeof n.order !== "number") n.order = 0;
+  });
   // drop tags that no longer exist so their notes fall into Untagged rather than vanish
   const live = new Set(TAGS.map(t => t.id));
   db.notes.forEach(n => {
@@ -674,74 +709,48 @@ if(!SR){
 $("micBtn").addEventListener("click", startRec);
 
 /* ---------------- capture -> confirm ---------------- */
-$("reviewBtn").addEventListener("click", () => {
-  const txt = $("captureText").value.trim();
-  if(!txt) return toast("Nothing to file yet.");
-  if(recOn) stopRec();
-  queue = [parseOne(txt)];
-  openConfirm();
-});
 
-$("bulkBtn").addEventListener("click", () => {
-  const blob = $("bulkText").value.trim();
-  if(!blob) return toast("Paste some notes first.");
-  queue = parseBulk(blob);
-  if(!queue.length) return toast("Could not find any entries in that.");
-  openConfirm();
-});
+const FILLERS = new Set(["um","uh","erm","er","ah","hmm","mmm"]);
+const FILLER_PAIRS = [["you","know"],["i","mean"],["sort","of"],["kind","of"]];
+const CONNECTIVES = ["and then","also","but then","then","but","so","and"];
 
-function renderPicker(){
-  const box = $("cPicker");
-  const typed = $("cPerson").value.trim().toLowerCase();
-  box.innerHTML = "";
-
-  const matches = db.people
-    .filter(p => !typed || p.name.toLowerCase().includes(typed))
-    .sort((a,b) => (lastNoted(b.id) || "").localeCompare(lastNoted(a.id) || ""))
-    .slice(0,12);
-
-  matches.forEach(p => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "chip";
-    b.textContent = p.name;
-    b.setAttribute("aria-pressed", $("cPerson").value.trim().toLowerCase() === p.name.toLowerCase() ? "true" : "false");
-    b.addEventListener("click", () => { $("cPerson").value = p.name; renderPicker(); });
-    box.appendChild(b);
+// Dictation often comes back with no punctuation at all, so a plain sentence
+// split can hand back one huge line. Connectives are the fallback seam.
+function splitSentences(text){
+  let parts = text.replace(/([.!?])\s+/g, "$1\n").split("\n")
+    .map(x => x.trim()).filter(Boolean);
+  const out = [];
+  parts.forEach(part => {
+    if(part.split(/\s+/).length <= 14){ out.push(part); return; }
+    let chunk = part;
+    for(const c of CONNECTIVES){
+      const rx = new RegExp("\\s+(" + c + ")\\s+", "i");
+      if(rx.test(chunk)){
+        chunk = chunk.replace(new RegExp("\\s+(" + c + ")\\s+", "ig"), "\n$1 ");
+        break;
+      }
+    }
+    chunk.split("\n").map(x => x.trim()).filter(Boolean).forEach(x => out.push(x));
   });
-
-  const exact = typed && db.people.some(p => p.name.toLowerCase() === typed);
-  if(typed && !exact){
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "chip new";
-    b.textContent = "+ New: " + $("cPerson").value.trim();
-    b.addEventListener("click", () => renderPicker());
-    box.appendChild(b);
-  }
+  return out.length ? out : [text.trim()];
 }
+
+function newLine(text){
+  return { id: uid(), text: text.trim(), tags: guessTags(text), loop: guessLoop(text) };
+}
+
+let rv = { lines: [], openId: null, splitId: null, breaks: null, drop: null };
 
 function openConfirm(){
   const item = queue[0];
   $("cPerson").value = item.person;
   renderPicker();
   $("cDate").value = item.date;
-  $("cText").value = item.text;
   $("cSaw").checked = item.saw;
-  $("cLoop").checked = item.loop;
 
-  const box = $("cTags");
-  box.innerHTML = "";
-  TAGS.forEach(t => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "chip";
-    b.textContent = t.label;
-    b.setAttribute("aria-pressed", item.tags.includes(t.id) ? "true" : "false");
-    b.addEventListener("click", () =>
-      b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") === "true" ? "false" : "true"));
-    box.appendChild(b);
-  });
+  rv.lines = splitSentences(item.text).map(newLine);
+  rv.openId = null; rv.splitId = null;
+  renderReview();
 
   const many = queue.length > 1;
   $("queueInfo").hidden = !many;
@@ -754,7 +763,338 @@ function openConfirm(){
   show("confirm");
 }
 
+function tagPillText(line){
+  return line.tags.length ? line.tags.map(t => TAGNAME[t]).join(", ") : "none";
+}
+
+function renderReview(){
+  const box = $("rvLines");
+  box.innerHTML = "";
+  $("rvHead").textContent = rv.lines.length === 1
+    ? "Tap the line to tag it"
+    : rv.lines.length + " lines. Tap one to tag it.";
+
+  rv.lines.forEach((line, i) => {
+    if(i > 0) box.appendChild(seamEl(i));
+    box.appendChild(line.id === rv.splitId ? splitEl(line) :
+                    line.id === rv.openId  ? openEl(line)  : rowEl(line, i));
+  });
+}
+
+function seamEl(i){
+  const d = document.createElement("div");
+  d.className = "seam";
+  const l = document.createElement("i"), r = document.createElement("i");
+  const b = document.createElement("button");
+  b.type = "button";
+  b.textContent = "join";
+  b.addEventListener("click", () => {
+    const prev = rv.lines[i-1], cur = rv.lines[i];
+    prev.text = (prev.text + " " + cur.text).replace(/\s+/g," ").trim();
+    prev.tags = [...new Set([...prev.tags, ...cur.tags])];
+    prev.loop = prev.loop || cur.loop;
+    rv.lines.splice(i, 1);
+    rv.openId = null;
+    renderReview();
+  });
+  d.appendChild(l); d.appendChild(b); d.appendChild(r);
+  return d;
+}
+
+function rowEl(line, i){
+  const d = document.createElement("div");
+  d.className = "rvrow";
+  d.dataset.id = line.id;
+
+  const body = document.createElement("div");
+  body.className = "rvbody";
+  const top = document.createElement("div");
+  top.className = "rvtop";
+  const p = document.createElement("p");
+  p.className = "rvtext";
+  p.textContent = line.text;
+  const tag = document.createElement("span");
+  tag.className = "rvtag" + (line.tags.length ? "" : " none");
+  tag.textContent = tagPillText(line);
+  top.appendChild(p); top.appendChild(tag);
+  body.appendChild(top);
+  body.addEventListener("click", () => { rv.openId = line.id; renderReview(); });
+
+  const grip = document.createElement("div");
+  grip.className = "rvgrip";
+  grip.textContent = "\u2261";
+  grip.setAttribute("aria-label", "Drag to reorder");
+  grip.addEventListener("pointerdown", e => beginDrag(e, i));
+
+  d.appendChild(body); d.appendChild(grip);
+  return d;
+}
+
+function openEl(line){
+  const d = document.createElement("div");
+  d.className = "rvrow open";
+  d.dataset.id = line.id;
+
+  const p = document.createElement("p");
+  p.className = "rvtext";
+  p.style.marginBottom = "10px";
+  p.textContent = line.text;
+  d.appendChild(p);
+
+  const chips = document.createElement("div");
+  chips.className = "chips";
+  TAGS.forEach(t => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip";
+    b.textContent = t.label;
+    b.setAttribute("aria-pressed", line.tags.includes(t.id) ? "true" : "false");
+    b.addEventListener("click", () => {
+      line.tags = line.tags.includes(t.id)
+        ? line.tags.filter(x => x !== t.id)
+        : [...line.tags, t.id];
+      renderReview();
+    });
+    chips.appendChild(b);
+  });
+  d.appendChild(chips);
+
+  const acts = document.createElement("div");
+  acts.className = "rvacts";
+
+  const ed = document.createElement("button");
+  ed.textContent = "type instead";
+  ed.addEventListener("click", () => {
+    const v = prompt("Edit this line", line.text);
+    if(v !== null && v.trim()){ line.text = v.trim(); renderReview(); }
+  });
+  acts.appendChild(ed);
+
+  const sp = document.createElement("button");
+  sp.textContent = "split";
+  sp.addEventListener("click", () => {
+    rv.splitId = line.id; rv.openId = null;
+    rv.breaks = new Set(); rv.drop = new Set();
+    // Known fillers start struck. Tap to keep any of them.
+    const ws = line.text.split(/\s+/);
+    ws.forEach((w, i) => {
+      const bare = w.toLowerCase().replace(/[^a-z']/g,"");
+      if(FILLERS.has(bare)) rv.drop.add(i);
+      FILLER_PAIRS.forEach(pair => {
+        const next = (ws[i+1]||"").toLowerCase().replace(/[^a-z']/g,"");
+        if(bare === pair[0] && next === pair[1]){ rv.drop.add(i); rv.drop.add(i+1); }
+      });
+    });
+    renderReview();
+  });
+  acts.appendChild(sp);
+
+  const fl = document.createElement("button");
+  fl.textContent = line.loop ? "following up" : "follow up";
+  if(line.loop) fl.style.color = "var(--flag)";
+  fl.addEventListener("click", () => { line.loop = !line.loop; renderReview(); });
+  acts.appendChild(fl);
+
+  const del = document.createElement("button");
+  del.className = "warn";
+  del.textContent = "delete";
+  del.addEventListener("click", () => {
+    if(rv.lines.length === 1) return toast("That is the only line.");
+    rv.lines = rv.lines.filter(x => x.id !== line.id);
+    rv.openId = null;
+    renderReview();
+  });
+  acts.appendChild(del);
+
+  d.appendChild(acts);
+  return d;
+}
+
+/* Split mode: gaps break the line, words drop out of it. Nothing is applied
+   until done, so a mistap costs one tap to undo. */
+function splitEl(line){
+  const d = document.createElement("div");
+  d.className = "rvrow open";
+  const words = line.text.split(/\s+/);
+
+  const hint = document.createElement("p");
+  hint.className = "rvnote";
+  hint.style.margin = "0 0 8px";
+  hint.textContent = "Tap a gap to break \u00b7 tap a word to drop it";
+  d.appendChild(hint);
+
+  const wrap = document.createElement("div");
+  wrap.className = "words";
+  words.forEach((w, i) => {
+    if(i > 0){
+      const g = document.createElement("span");
+      const bare = w.toLowerCase().replace(/[^a-z']/g,"");
+      const likely = CONNECTIVES.includes(bare);
+      g.className = "g" + (rv.breaks.has(i) ? " on" : (likely ? " hint" : ""));
+      g.addEventListener("click", () => {
+        if(rv.breaks.has(i)) rv.breaks.delete(i); else rv.breaks.add(i);
+        renderReview();
+      });
+      wrap.appendChild(g);
+    }
+    const sp = document.createElement("span");
+    sp.className = "w" + (rv.drop.has(i) ? " off" : "");
+    sp.textContent = w;
+    sp.addEventListener("click", () => {
+      if(rv.drop.has(i)) rv.drop.delete(i); else rv.drop.add(i);
+      renderReview();
+    });
+    wrap.appendChild(sp);
+  });
+  d.appendChild(wrap);
+
+  const acts = document.createElement("div");
+  acts.className = "rvacts";
+
+  const un = document.createElement("button");
+  un.textContent = "undo all";
+  un.addEventListener("click", () => { rv.breaks = new Set(); rv.drop = new Set(); renderReview(); });
+  acts.appendChild(un);
+
+  const ty = document.createElement("button");
+  ty.textContent = "type instead";
+  ty.addEventListener("click", () => {
+    const v = prompt("Edit this line", line.text);
+    if(v !== null && v.trim()){ line.text = v.trim(); rv.breaks = new Set(); rv.drop = new Set(); renderReview(); }
+  });
+  acts.appendChild(ty);
+
+  const ok = document.createElement("button");
+  ok.textContent = "done";
+  ok.style.color = "var(--accent)";
+  ok.style.marginLeft = "auto";
+  ok.addEventListener("click", () => {
+    const kept = words.map((w,i) => rv.drop.has(i) ? null : w);
+    const chunks = []; let cur = [];
+    kept.forEach((w,i) => {
+      if(i > 0 && rv.breaks.has(i)){ chunks.push(cur); cur = []; }
+      if(w !== null) cur.push(w);
+    });
+    chunks.push(cur);
+    const texts = chunks.map(c => c.join(" ").trim()).filter(Boolean);
+    if(!texts.length){ toast("Nothing left in that line."); return; }
+
+    const at = rv.lines.findIndex(x => x.id === line.id);
+    const made = texts.map((t, k) => {
+      if(k === 0){ line.text = t; return line; }   // first piece keeps the tags
+      return newLine(t);
+    });
+    rv.lines.splice(at, 1, ...made);
+    rv.splitId = null; rv.breaks = null; rv.drop = null;
+    renderReview();
+  });
+  acts.appendChild(ok);
+
+  d.appendChild(acts);
+  return d;
+}
+
+/* Drag to reorder. Pointer events rather than HTML5 drag, which does not work
+   on touch. The listener sits on the container because rows are rebuilt mid-drag. */
+let dragFrom = -1;
+function beginDrag(e, i){
+  e.preventDefault();
+  dragFrom = i;
+  const box = $("rvLines");
+  box.setPointerCapture(e.pointerId);
+  box.querySelectorAll(".rvrow")[i].classList.add("dragging");
+
+  const move = ev => {
+    const rows = [...box.querySelectorAll(".rvrow")];
+    let to = dragFrom;
+    rows.forEach((r, k) => {
+      const b = r.getBoundingClientRect();
+      if(ev.clientY > b.top && ev.clientY < b.bottom) to = k;
+    });
+    if(to !== dragFrom && to >= 0){
+      const [m] = rv.lines.splice(dragFrom, 1);
+      rv.lines.splice(to, 0, m);
+      dragFrom = to;
+      renderReview();
+      const el = box.querySelectorAll(".rvrow")[to];
+      if(el) el.classList.add("dragging");
+    }
+  };
+  const up = ev => {
+    box.releasePointerCapture(ev.pointerId);
+    box.removeEventListener("pointermove", move);
+    box.removeEventListener("pointerup", up);
+    box.removeEventListener("pointercancel", up);
+    dragFrom = -1;
+    renderReview();
+  };
+  box.addEventListener("pointermove", move);
+  box.addEventListener("pointerup", up);
+  box.addEventListener("pointercancel", up);
+}
+
+function renderPicker(){
+  const box = $("cPicker");
+  const typed = $("cPerson").value.trim().toLowerCase();
+  box.innerHTML = "";
+  const matches = db.people
+    .filter(p => !typed || p.name.toLowerCase().includes(typed))
+    .sort((a,b) => (lastNoted(b.id) || "").localeCompare(lastNoted(a.id) || ""))
+    .slice(0,12);
+  matches.forEach(p => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.textContent = p.name;
+    b.setAttribute("aria-pressed", typed === p.name.toLowerCase() ? "true" : "false");
+    b.addEventListener("click", () => { $("cPerson").value = p.name; renderPicker(); });
+    box.appendChild(b);
+  });
+  const exact = typed && db.people.some(p => p.name.toLowerCase() === typed);
+  if(typed && !exact){
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chip new";
+    b.textContent = "+ New: " + $("cPerson").value.trim();
+    b.addEventListener("click", () => renderPicker());
+    box.appendChild(b);
+  }
+}
 $("cPerson").addEventListener("input", renderPicker);
+
+/* ---------------- capture buttons ---------------- */
+$("reviewBtn").addEventListener("click", () => {
+  const txt = $("captureText").value.trim();
+  if(!txt) return toast("Nothing to file yet.");
+  if(recOn) stopRec();
+  queue = [parseOne(txt)];
+  openConfirm();
+});
+
+$("laterBtn").addEventListener("click", () => {
+  const txt = $("captureText").value.trim();
+  if(!txt) return toast("Nothing to save yet.");
+  if(recOn) stopRec();
+  const g = parseOne(txt);
+  db.pending.push({ id: uid(), date: g.date, text: txt, raw: txt, guess: g.person, created: Date.now() });
+  save();
+  $("captureText").value = "";
+  refreshBadge(); renderWaiting();
+  toast("Saved. File it when you have a minute.");
+});
+
+function renderWaiting(){
+  const b = $("waitingLine");
+  const n = db.pending.length;
+  b.hidden = n === 0;
+  b.textContent = n === 1 ? "1 note waiting to be filed" : n + " notes waiting to be filed";
+}
+$("waitingLine").addEventListener("click", () => { renderLoops(); show("loops"); });
+
+$("bulkBtn").addEventListener("click", () => {
+  const blob = $("bulkText").value.trim();
+  if(!blob) return toast("Paste some notes first.");
+  queue = parseBulk(blob);
+  if(!queue.length) return toast("Could not find any entries in that.");
+  openConfirm();
+});
 
 $("skipBtn").addEventListener("click", () => {
   queue.shift();
@@ -765,38 +1105,34 @@ $("skipBtn").addEventListener("click", () => {
 $("saveBtn").addEventListener("click", () => {
   const name = $("cPerson").value.trim();
   if(!name) return toast("Who is this about?");
-  const text = $("cText").value.trim();
-  if(!text) return toast("The note is empty.");
+  if(!rv.lines.length) return toast("Nothing to save.");
 
   const person = ensurePerson(name);
-  const tags = [...$("cTags").querySelectorAll('[aria-pressed="true"]')]
-    .map(b => TAGS.find(t => t.label === b.textContent).id);
+  const capId = uid();
+  const date = $("cDate").value || todayISO();
+  const saw = $("cSaw").checked;
+  const raw = queue[0] ? queue[0].raw : rv.lines.map(l => l.text).join(" ");
 
-  const note = {
-    id: uid(),
-    personId: person.id,
-    date: $("cDate").value || todayISO(),
-    text,
-    raw: queue[0] ? queue[0].raw : text,
-    tags,
-    saw: $("cSaw").checked,
-    loop: $("cLoop").checked,
-    resolved: false,
-    created: Date.now()
-  };
+  rv.lines.forEach((line, i) => {
+    db.notes.push({
+      id: uid(), personId: person.id, captureId: capId, order: i,
+      date, text: line.text, tags: line.tags, saw,
+      loop: line.loop, resolved: false, created: Date.now(),
+      raw: i === 0 ? raw : ""
+    });
+  });
 
-  // a new note on a person closes their oldest open loop only if you say so later,
-  // so nothing auto-resolves here.
-  db.notes.push(note);
-  save();
-  refreshBadge();
+  if(rv.pendingId){
+    db.pending = db.pending.filter(x => x.id !== rv.pendingId);
+    rv.pendingId = null;
+  }
+  save(); refreshBadge(); renderWaiting();
 
   queue.shift();
   if(queue.length){
     openConfirm();
   }else{
-    $("captureText").value = "";
-    $("bulkText").value = "";
+    $("captureText").value = ""; $("bulkText").value = "";
     show("capture");
     toast("Filed under " + person.name + ".");
   }
@@ -1072,6 +1408,7 @@ $("delPersonBtn").addEventListener("click", () => {
 
 /* ---------------- follow ups ---------------- */
 function renderLoops(){
+  renderPending();
   const box = $("loopList");
   box.innerHTML = "";
   const loops = openLoops(null).sort((a,b) => a.date.localeCompare(b.date));
@@ -1099,11 +1436,59 @@ function renderLoops(){
     box.appendChild(d);
   });
 
-  $("loopEmpty").hidden = loops.length > 0;
+  $("loopEmpty").hidden = loops.length > 0 || db.pending.length > 0;
+}
+
+function renderPending(){
+  const box = $("pendList");
+  box.innerHTML = "";
+  if(!db.pending.length) return;
+
+  const h = document.createElement("p");
+  h.className = "rvhead";
+  h.style.marginTop = "0";
+  h.textContent = "Waiting to be filed";
+  box.appendChild(h);
+
+  db.pending.slice().sort((a,b) => a.created - b.created).forEach(pn => {
+    const d = document.createElement("div");
+    d.className = "card";
+    d.innerHTML = '<div class="histtext">' + esc(pn.text) + '</div>' +
+      '<div class="histdate" style="margin-top:6px">' + prettyDate(pn.date) +
+      (pn.guess ? " \u00b7 " + esc(pn.guess) + "?" : " \u00b7 who is this about?") + '</div>';
+
+    const acts = document.createElement("div");
+    acts.className = "histacts";
+    const go = document.createElement("button");
+    go.textContent = "File it";
+    go.addEventListener("click", () => {
+      queue = [parseOne(pn.text)];
+      queue[0].date = pn.date;
+      openConfirm();
+      rv.pendingId = pn.id;
+    });
+    acts.appendChild(go);
+    const del = document.createElement("button");
+    del.className = "warn";
+    del.textContent = "Discard";
+    del.addEventListener("click", () => {
+      if(!confirm("Discard this note?")) return;
+      db.pending = db.pending.filter(x => x.id !== pn.id);
+      save(); refreshBadge(); renderWaiting(); renderLoops();
+    });
+    acts.appendChild(del);
+    d.appendChild(acts);
+    box.appendChild(d);
+  });
+
+  const hr = document.createElement("p");
+  hr.className = "rvhead";
+  hr.textContent = "Ask about this";
+  box.appendChild(hr);
 }
 
 function refreshBadge(){
-  const n = openLoops(null).length;
+  const n = openLoops(null).length + db.pending.length;
   const b = $("loopBadge");
   b.textContent = n;
   b.hidden = n === 0;
@@ -1160,6 +1545,7 @@ $("exportBtn").addEventListener("click", async () => {
 $("vstamp").textContent = "v" + VERSION;
 load();
 refreshBadge();
+renderWaiting();
 renderPeople();
 </script>
 </body>
