@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Circle">
+<meta name="theme-color" content="#E9EAE4">
+<title>Circle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Karla:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E9EAE4;
+  --card:#FBFBF9;
+  --ink:#23271F;
+  --muted:#6E7368;
+  --line:#D4D6CD;
+  --accent:#3F6B52;
+  --accent-soft:#E2EAE3;
+  --flag:#A8412A;
+  --flag-soft:#F5E3DD;
+  --radius:14px;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;
+  font-family:'Karla',system-ui,-apple-system,'Segoe UI',sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  font-size:16px;
+  line-height:1.5;
+  padding-bottom:calc(76px + env(safe-area-inset-bottom,0px));
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.wrap{max-width:640px;margin:0 auto;padding:18px 16px 8px}
+.screen{display:none}
+.screen.on{display:block}
+
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;margin:0 0 2px}
+h2{font-size:1.05rem;font-weight:600;margin:0 0 10px}
+.sub{color:var(--muted);font-size:.88rem;margin:0 0 20px}
+
+/* capture */
+.mic-zone{text-align:center;padding:14px 0 6px}
+.mic{
+  width:132px;height:132px;border-radius:50%;
+  background:var(--accent);color:#F7FAF7;
+  display:inline-flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 0 #2E5240;
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+.mic:active{transform:translateY(4px);box-shadow:0 2px 0 #2E5240}
+.mic svg{width:52px;height:52px}
+.mic.live{background:var(--flag);box-shadow:0 6px 0 #7D3020;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.78}}
+.mic-hint{color:var(--muted);font-size:.85rem;margin:14px 0 0;min-height:1.4em}
+
+textarea{
+  width:100%;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius);padding:12px 13px;resize:vertical;line-height:1.55;
+}
+textarea.big{min-height:120px}
+textarea.huge{min-height:220px}
+
+.row{display:flex;gap:10px;align-items:center}
+.row.wrap-row{flex-wrap:wrap}
+.spread{display:flex;justify-content:space-between;align-items:center;gap:10px}
+
+.btn{
+  border-radius:11px;padding:11px 16px;font-weight:600;font-size:.95rem;
+  background:var(--accent);color:#F7FAF7;border:1px solid transparent;
+}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.quiet{background:transparent;color:var(--muted);padding:9px 4px;font-weight:500}
+.btn.danger{background:transparent;color:var(--flag);border-color:var(--flag)}
+.btn.block{width:100%;display:block;text-align:center}
+.btn:disabled{opacity:.45;cursor:default}
+
+.seg{display:flex;border:1px solid var(--line);border-radius:11px;overflow:hidden;background:var(--card)}
+.seg button{flex:1;padding:9px 6px;font-size:.88rem;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.card.flagged{border-color:var(--flag);background:var(--flag-soft)}
+
+label.fld{display:block;margin:0 0 12px}
+label.fld > span{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:5px}
+input[type=text],input[type=date],select{
+  width:100%;background:var(--card);border:1px solid var(--line);
+  border-radius:11px;padding:11px 12px;
+}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 52%,calc(100% - 13px) 52%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+
+.picker{display:flex;flex-wrap:wrap;gap:7px;margin:-6px 0 16px}
+.picker:empty{display:none}
+.picker .new{color:var(--accent);border-style:dashed;border-color:var(--accent)}
+
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{
+  border:1px solid var(--line);background:var(--card);color:var(--muted);
+  border-radius:999px;padding:7px 13px;font-size:.86rem;font-weight:600;
+}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#F7FAF7}
+.chip.read{cursor:default}
+
+.toggle{
+  display:flex;align-items:center;gap:11px;padding:11px 13px;
+  border:1px solid var(--line);border-radius:11px;background:var(--card);margin-bottom:10px;
+}
+.toggle input{width:20px;height:20px;accent-color:var(--accent);flex:none}
+.toggle span{font-size:.92rem}
+.toggle small{display:block;color:var(--muted);font-size:.79rem;line-height:1.35}
+
+.search{position:relative;margin-bottom:12px}
+.search input{padding-left:38px}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted)}
+
+.plist{list-style:none;margin:14px 0 0;padding:0}
+.plist li{border-bottom:1px solid var(--line)}
+.plist button{width:100%;text-align:left;padding:14px 2px;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.pname{font-weight:600;font-size:1.02rem}
+.pmeta{color:var(--muted);font-size:.8rem;flex:none}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--flag);margin-left:7px;vertical-align:middle}
+
+.empty{color:var(--muted);font-size:.92rem;padding:28px 2px;line-height:1.6}
+
+.backlink{color:var(--muted);font-size:.88rem;font-weight:600;padding:4px 0;margin-bottom:8px;display:inline-block}
+
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:18px}
+.facts label{margin:0}
+.facts label.full{grid-column:1 / -1}
+
+.catcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:9px;overflow:hidden}
+.cathead{width:100%;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:13px 14px;text-align:left}
+.catname{font-size:.78rem;color:var(--muted);font-weight:700;margin-bottom:3px}
+.catnow{font-size:.97rem;line-height:1.45}
+.catcount{color:var(--muted);font-size:.8rem;flex:none;padding-top:2px}
+.cathist{border-top:1px solid var(--line);padding:4px 14px 10px;display:none}
+.catcard.open .cathist{display:block}
+.hist{padding:11px 0;border-bottom:1px solid var(--line)}
+.hist:last-child{border-bottom:none}
+.histdate{font-size:.76rem;color:var(--muted);font-weight:600;margin-bottom:3px}
+.histtext{font-size:.94rem;line-height:1.5}
+.histacts{display:flex;gap:14px;margin-top:7px}
+.histacts button{font-size:.8rem;color:var(--muted);font-weight:600}
+.histacts button.warn{color:var(--flag)}
+
+.histtext mark{background:#F2E3B0;color:inherit;border-radius:3px;padding:0 2px}
+.loop{font-size:.78rem;font-weight:700;color:var(--flag);margin-bottom:4px}
+
+nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:40;
+  background:var(--card);border-top:1px solid var(--line);
+  display:flex;padding-bottom:env(safe-area-inset-bottom,0px);
+}
+nav button{flex:1;padding:11px 4px 13px;color:var(--muted);font-size:.72rem;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:4px}
+nav button svg{width:21px;height:21px}
+nav button[aria-current="page"]{color:var(--accent)}
+nav .badge{position:absolute;transform:translate(15px,-4px);background:var(--flag);color:#fff;border-radius:999px;font-size:.62rem;padding:1px 5px;font-weight:700}
+
+.queue{font-size:.82rem;color:var(--muted);font-weight:600;margin-bottom:10px}
+.toast{
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(88px + env(safe-area-inset-bottom,0px));
+  background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:999px;
+  font-size:.88rem;font-weight:600;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.toast.on{opacity:1}
+.divider{height:1px;background:var(--line);margin:22px 0 18px;border:none}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ============ CAPTURE ============ -->
+  <section id="s-capture" class="screen on">
+    <h1>What happened?</h1>
+    <p class="sub">Talk, type, or paste. You confirm the details next.</p>
+
+    <div class="mic-zone">
+      <button class="mic" id="micBtn" aria-label="Start voice capture">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <rect x="9" y="2.5" width="6" height="11.5" rx="3"/>
+          <path d="M5 11.5a7 7 0 0 0 14 0"/><path d="M12 18.5V21.5"/>
+        </svg>
+      </button>
+      <p class="mic-hint" id="micHint">Tap and start talking</p>
+    </div>
+
+    <textarea id="captureText" class="big" placeholder="Or type it here. &quot;Had lunch with Dave, he's interviewing at Stripe next Thursday and just picked up bouldering.&quot;"></textarea>
+    <div class="row" style="margin-top:10px">
+      <button class="btn block" id="reviewBtn">Review and file</button>
+    </div>
+
+    <hr class="divider">
+
+    <h2>Import old notes</h2>
+    <p class="sub" style="margin-bottom:12px">Paste a wall of text. Blank lines separate entries. Dates at the start of a line get picked up.</p>
+    <textarea id="bulkText" class="huge" placeholder="3/14/25 Dave got the promotion, celebrating at Halyard.&#10;&#10;Jan 2 Met Priya's sister Anjali, visiting from Pune."></textarea>
+    <div class="row" style="margin-top:10px">
+      <button class="btn ghost block" id="bulkBtn">Parse and review</button>
+    </div>
+  </section>
+
+  <!-- ============ CONFIRM ============ -->
+  <section id="s-confirm" class="screen">
+    <button class="backlink" data-back="capture">&larr; Discard</button>
+    <h1>Check this</h1>
+    <p class="sub" id="confirmSub">Fix anything that landed wrong.</p>
+    <p class="queue" id="queueInfo" hidden></p>
+
+    <label class="fld"><span>Who</span>
+      <input type="text" id="cPerson" placeholder="Name" autocomplete="off">
+    </label>
+    <div class="picker" id="cPicker"></div>
+
+    <label class="fld"><span>When it happened</span>
+      <input type="date" id="cDate">
+    </label>
+
+    <label class="fld"><span>Note</span>
+      <textarea id="cText" class="big"></textarea>
+    </label>
+
+    <label class="fld"><span>Tags</span></label>
+    <div class="chips" id="cTags" style="margin:-6px 0 16px"></div>
+
+    <label class="toggle"><input type="checkbox" id="cSaw">
+      <span>I saw them in person<small>Keeps your last-seen date current.</small></span>
+    </label>
+    <label class="toggle"><input type="checkbox" id="cLoop">
+      <span>Follow up on this<small>Shows in red until you log how it turned out.</small></span>
+    </label>
+
+    <div class="row" style="margin-top:16px">
+      <button class="btn ghost" id="skipBtn" hidden>Skip</button>
+      <button class="btn block" id="saveBtn">Save note</button>
+    </div>
+  </section>
+
+  <!-- ============ PEOPLE ============ -->
+  <section id="s-people" class="screen">
+    <h1>People</h1>
+    <p class="sub">Everyone you keep notes on.</p>
+
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="text" id="search" placeholder="Search names and notes" autocomplete="off">
+    </div>
+    <div class="seg" role="group" aria-label="Sort people">
+      <button id="sortRecent" aria-pressed="true">Recently noted</button>
+      <button id="sortAlpha" aria-pressed="false">A to Z</button>
+    </div>
+
+    <ul class="plist" id="peopleListEl"></ul>
+    <div class="empty" id="peopleEmpty" hidden>No one yet. Capture your first note and they will show up here.</div>
+  </section>
+
+  <!-- ============ PROFILE ============ -->
+  <section id="s-profile" class="screen">
+    <button class="backlink" data-back="people">&larr; People</button>
+    <h1 id="pTitle">Name</h1>
+    <p class="sub" id="pSub"></p>
+
+    <div id="pLoops"></div>
+
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="text" id="pSearch" placeholder="Search these notes" autocomplete="off">
+    </div>
+
+    <div id="pCats"></div>
+
+    <hr class="divider">
+    <h2>About them</h2>
+    <div class="facts" id="pFacts"></div>
+
+    <hr class="divider">
+    <label class="fld"><span>Merge this person into another</span>
+      <select id="mergeSel"><option value="">Pick someone</option></select>
+    </label>
+    <div class="row">
+      <button class="btn ghost" id="mergeBtn">Merge</button>
+      <button class="btn danger" id="delPersonBtn">Delete person</button>
+    </div>
+  </section>
+
+  <!-- ============ FOLLOW UPS ============ -->
+  <section id="s-loops" class="screen">
+    <h1>Follow up</h1>
+    <p class="sub">Things you flagged and have not closed out.</p>
+    <div id="loopList"></div>
+    <div class="empty" id="loopEmpty" hidden>Nothing outstanding. Flag a note with "follow up on this" and it lands here.</div>
+    <hr class="divider">
+    <button class="btn quiet" id="exportBtn">Copy everything as plain text</button>
+  </section>
+
+</div>
+
+<nav>
+  <button data-go="capture" aria-current="page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="2.5" width="6" height="11.5" rx="3"/><path d="M5 11.5a7 7 0 0 0 14 0"/><path d="M12 18.5V21.5"/></svg>
+    Capture
+  </button>
+  <button data-go="people">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c0-3.6 2.8-5.6 6.2-5.6s6.2 2 6.2 5.6"/><path d="M16.5 5.2a3.4 3.4 0 0 1 0 6.4"/><path d="M18 14.8c2.2.6 3.6 2.4 3.6 5.2"/></svg>
+    People
+  </button>
+  <button data-go="loops">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3.2a8.8 8.8 0 1 1-8.8 8.8"/><path d="M3.2 12V7.4"/><path d="M3.2 12h4.6"/><path d="M12 7.6V12l3 1.8"/></svg>
+    Follow up<span class="badge" id="loopBadge" hidden>0</span>
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+/* ---------------- storage ---------------- */
+const KEY = "circle.v1";
+let db = { people: [], notes: [] };
+
+function load(){
+  try{
+    let raw = localStorage.getItem(KEY);
+    if(!raw){
+      const old = localStorage.getItem("keep.v1");   // app was called Keep briefly
+      if(old){ raw = old; localStorage.setItem(KEY, old); }
+    }
+    if(raw) db = JSON.parse(raw);
+  }catch(e){ /* start fresh */ }
+  if(!Array.isArray(db.people)) db.people = [];
+  if(!Array.isArray(db.notes)) db.notes = [];
+  // drop tags that no longer exist so their notes fall into Untagged rather than vanish
+  const live = new Set(TAGS.map(t => t.id));
+  db.notes.forEach(n => {
+    if(!Array.isArray(n.tags)) n.tags = [];
+    n.tags = n.tags.filter(t => live.has(t));
+  });
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(db)); }
+  catch(e){ toast("Could not save. Storage may be full."); }
+}
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+/* ---------------- taxonomy ---------------- */
+const TAGS = [
+  { id:"work",          label:"Work",          mode:"current" },
+  { id:"family",        label:"Family",        mode:"current" },
+  { id:"relationships", label:"Relationships", mode:"current" },
+  { id:"health",        label:"Health",        mode:"current" },
+  { id:"hobbies",       label:"Hobbies",       mode:"list" },
+  { id:"preferences",   label:"Preferences",   mode:"list" },
+  { id:"goals",         label:"Goals",         mode:"list" }
+];
+const TAGNAME = Object.fromEntries(TAGS.map(t => [t.id, t.label]));
+
+const KEYWORDS = {
+  work:["job","work","working","boss","promotion","promoted","interview","interviewing","career","office","hired","fired","laid off","quit","company","manager","raise","client","startup","resume","applied"],
+  family:["mom","dad","mother","father","sister","brother","son","daughter","kid","kids","baby","parents","grandma","grandpa","family","aunt","uncle","cousin","nephew","niece"],
+  relationships:["married","marriage","wife","husband","girlfriend","boyfriend","dating","engaged","engagement","divorce","breakup","broke up","partner","fiance","fiancee","wedding"],
+  health:["surgery","sick","illness","doctor","hospital","injury","injured","diagnosis","therapy","recovery","knee","back pain","health","gym","fitness","marathon","training","physical therapy"],
+  hobbies:["hobby","running","hiking","painting","guitar","piano","reading","gaming","climbing","bouldering","cycling","garden","gardening","cooking","baking","photography","dance","dancing","chess","knitting","woodworking","pottery"],
+  preferences:["loves","love","hates","hate","favorite","likes","dislikes","allergic","prefers","obsessed","can't stand","cannot stand","into"],
+  goals:["wants to","hoping","hopes","dream","plans to","planning to","goal","someday","applying","saving for","trying to","wants a"]
+};
+const LOOP_HINTS = ["interview","waiting to hear","coming up","next week","next month","applying","will find out","should ask","hoping to hear","results","find out","decision","offer","due in","expecting"];
+
+/* ---------------- parsing ---------------- */
+const STOP = new Set(["i","he","she","they","we","you","it","the","a","an","and","but","so","then","had","has","have","just","last","next","this","that","my","his","her","their","our","today","yesterday","tomorrow","met","saw","talked","lunch","dinner","coffee","monday","tuesday","wednesday","thursday","friday","saturday","sunday","january","february","march","april","may","june","july","august","september","october","november","december"]);
+
+function todayISO(){
+  const d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+}
+function shiftISO(days){
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+}
+
+const MONTHS = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+
+function guessDate(text){
+  const t = text.toLowerCase();
+  let m = t.match(/\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/);
+  if(m){
+    let yr = m[3] ? parseInt(m[3],10) : new Date().getFullYear();
+    if(yr < 100) yr += 2000;
+    const d = new Date(yr, parseInt(m[1],10)-1, parseInt(m[2],10));
+    if(!isNaN(d)) return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  }
+  m = t.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(?:,?\s*(\d{4}))?/);
+  if(m){
+    const yr = m[3] ? parseInt(m[3],10) : new Date().getFullYear();
+    const d = new Date(yr, MONTHS[m[1]], parseInt(m[2],10));
+    if(!isNaN(d)) return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  }
+  if(/\byesterday\b/.test(t)) return shiftISO(-1);
+  if(/\blast night\b/.test(t)) return shiftISO(-1);
+  if(/\blast week\b/.test(t)) return shiftISO(-7);
+  if(/\blast month\b/.test(t)) return shiftISO(-30);
+  return todayISO();
+}
+
+function guessTags(text){
+  const t = " " + text.toLowerCase() + " ";
+  const hits = [];
+  for(const [tag, words] of Object.entries(KEYWORDS)){
+    if(words.some(w => t.includes(" " + w) || t.includes(w + " "))) hits.push(tag);
+  }
+  return hits.slice(0,4);
+}
+
+function guessLoop(text){
+  const t = text.toLowerCase();
+  return LOOP_HINTS.some(h => t.includes(h));
+}
+
+function guessSaw(text){
+  return /\b(lunch|dinner|coffee|drinks|met up|saw|hung out|visited|brunch|party|came over|stopped by)\b/i.test(text);
+}
+
+function guessPerson(text){
+  // known people win
+  const lower = text.toLowerCase();
+  let best = null;
+  for(const p of db.people){
+    const first = p.name.split(/\s+/)[0].toLowerCase();
+    if(new RegExp("\\b" + first.replace(/[.*+?^${}()|[\]\\]/g,"\\$&") + "\\b").test(lower)){
+      if(!best || p.name.length > best.length) best = p.name;
+    }
+  }
+  if(best) return best;
+  // otherwise first capitalized word that isn't a common opener
+  const words = text.split(/[^A-Za-z'’-]+/).filter(Boolean);
+  for(const w of words){
+    if(/^[A-Z][a-z'’-]{1,}$/.test(w) && !STOP.has(w.toLowerCase())) return w;
+  }
+  return "";
+}
+
+function parseOne(text){
+  return {
+    person: guessPerson(text),
+    date: guessDate(text),
+    text: text.trim(),
+    tags: guessTags(text),
+    saw: guessSaw(text),
+    loop: guessLoop(text),
+    raw: text.trim()
+  };
+}
+
+function parseBulk(blob){
+  const blocks = blob.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
+  const out = [];
+  for(const b of blocks){
+    // a block with many lines each starting with a date splits further
+    const lines = b.split(/\n/).map(s => s.trim()).filter(Boolean);
+    const dated = lines.filter(l => /^(\d{1,2}\/\d{1,2}|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i.test(l));
+    if(lines.length > 1 && dated.length === lines.length){
+      lines.forEach(l => out.push(parseOne(l)));
+    }else{
+      out.push(parseOne(b));
+    }
+  }
+  return out;
+}
+
+/* ---------------- people helpers ---------------- */
+function findPerson(name){
+  const n = name.trim().toLowerCase();
+  return db.people.find(p => p.name.toLowerCase() === n) || null;
+}
+function ensurePerson(name){
+  const found = findPerson(name);
+  if(found) return found;
+  const p = { id:uid(), name:name.trim(), met:"", closeness:"", energy:"", enneagram:"", birthday:"" };
+  db.people.push(p);
+  return p;
+}
+function notesFor(pid){
+  return db.notes.filter(n => n.personId === pid)
+    .sort((a,b) => b.date.localeCompare(a.date) || b.created - a.created);
+}
+function lastNoted(pid){
+  const ns = notesFor(pid);
+  return ns.length ? ns[0].date : "";
+}
+function lastSeen(pid){
+  const ns = notesFor(pid).filter(n => n.saw);
+  return ns.length ? ns[0].date : "";
+}
+function openLoops(pid){
+  return db.notes.filter(n => n.loop && !n.resolved && (!pid || n.personId === pid));
+}
+function prettyDate(iso){
+  if(!iso) return "";
+  const [y,m,d] = iso.split("-").map(Number);
+  return new Date(y, m-1, d).toLocaleDateString(undefined,{month:"short", day:"numeric", year:"numeric"});
+}
+function agoDays(iso){
+  if(!iso) return Infinity;
+  const [y,m,d] = iso.split("-").map(Number);
+  return Math.round((Date.now() - new Date(y,m-1,d).getTime()) / 86400000);
+}
+
+/* ---------------- ui plumbing ---------------- */
+const $ = id => document.getElementById(id);
+let current = "capture";
+let profileId = null;
+let queue = [];
+let sortMode = "recent";
+
+function show(name){
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("on"));
+  $("s-" + name).classList.add("on");
+  document.querySelectorAll("nav button").forEach(b =>
+    b.toggleAttribute("aria-current", b.dataset.go === name));
+  document.querySelectorAll("nav button").forEach(b => {
+    if(b.dataset.go === name) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current");
+  });
+  current = name;
+  window.scrollTo(0,0);
+}
+function toast(msg){
+  const el = $("toast");
+  el.textContent = msg;
+  el.classList.add("on");
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove("on"), 1900);
+}
+
+document.querySelectorAll("nav button").forEach(b =>
+  b.addEventListener("click", () => {
+    const go = b.dataset.go;
+    if(go === "people") renderPeople();
+    if(go === "loops") renderLoops();
+    show(go);
+  }));
+document.querySelectorAll("[data-back]").forEach(b =>
+  b.addEventListener("click", () => {
+    const back = b.dataset.back;
+    if(back === "people") renderPeople();
+    if(back === "capture"){ queue = []; }
+    show(back);
+  }));
+
+/* ---------------- voice ---------------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, listening = false;
+
+if(!SR){
+  $("micHint").textContent = "Voice is not supported in this browser. Use your keyboard's dictation key instead.";
+  $("micBtn").disabled = true;
+}else{
+  rec = new SR();
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.lang = "en-US";
+  let settled = "";
+
+  rec.onstart = () => {
+    listening = true;
+    settled = $("captureText").value ? $("captureText").value.trim() + " " : "";
+    $("micBtn").classList.add("live");
+    $("micBtn").setAttribute("aria-label","Stop voice capture");
+    $("micHint").textContent = "Listening. Tap again when you're done.";
+  };
+  rec.onresult = e => {
+    let interim = "";
+    for(let i = e.resultIndex; i < e.results.length; i++){
+      const chunk = e.results[i][0].transcript;
+      if(e.results[i].isFinal) settled += chunk + " "; else interim += chunk;
+    }
+    $("captureText").value = (settled + interim).replace(/\s+/g," ").trim();
+  };
+  rec.onerror = e => {
+    $("micHint").textContent = e.error === "not-allowed"
+      ? "Microphone blocked. Allow it in your browser settings."
+      : "Voice stopped. Tap to try again.";
+  };
+  rec.onend = () => {
+    listening = false;
+    $("micBtn").classList.remove("live");
+    $("micBtn").setAttribute("aria-label","Start voice capture");
+    if(!$("micHint").textContent.startsWith("Microphone")) $("micHint").textContent = "Tap and start talking";
+  };
+
+  $("micBtn").addEventListener("click", () => {
+    if(listening) rec.stop();
+    else { try{ rec.start(); }catch(e){ /* already starting */ } }
+  });
+}
+
+/* ---------------- capture -> confirm ---------------- */
+$("reviewBtn").addEventListener("click", () => {
+  const txt = $("captureText").value.trim();
+  if(!txt) return toast("Nothing to file yet.");
+  if(listening) rec.stop();
+  queue = [parseOne(txt)];
+  openConfirm();
+});
+
+$("bulkBtn").addEventListener("click", () => {
+  const blob = $("bulkText").value.trim();
+  if(!blob) return toast("Paste some notes first.");
+  queue = parseBulk(blob);
+  if(!queue.length) return toast("Could not find any entries in that.");
+  openConfirm();
+});
+
+function renderPicker(){
+  const box = $("cPicker");
+  const typed = $("cPerson").value.trim().toLowerCase();
+  box.innerHTML = "";
+
+  const matches = db.people
+    .filter(p => !typed || p.name.toLowerCase().includes(typed))
+    .sort((a,b) => (lastNoted(b.id) || "").localeCompare(lastNoted(a.id) || ""))
+    .slice(0,12);
+
+  matches.forEach(p => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip";
+    b.textContent = p.name;
+    b.setAttribute("aria-pressed", $("cPerson").value.trim().toLowerCase() === p.name.toLowerCase() ? "true" : "false");
+    b.addEventListener("click", () => { $("cPerson").value = p.name; renderPicker(); });
+    box.appendChild(b);
+  });
+
+  const exact = typed && db.people.some(p => p.name.toLowerCase() === typed);
+  if(typed && !exact){
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip new";
+    b.textContent = "+ New: " + $("cPerson").value.trim();
+    b.addEventListener("click", () => renderPicker());
+    box.appendChild(b);
+  }
+}
+
+function openConfirm(){
+  const item = queue[0];
+  $("cPerson").value = item.person;
+  renderPicker();
+  $("cDate").value = item.date;
+  $("cText").value = item.text;
+  $("cSaw").checked = item.saw;
+  $("cLoop").checked = item.loop;
+
+  const box = $("cTags");
+  box.innerHTML = "";
+  TAGS.forEach(t => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip";
+    b.textContent = t.label;
+    b.setAttribute("aria-pressed", item.tags.includes(t.id) ? "true" : "false");
+    b.addEventListener("click", () =>
+      b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") === "true" ? "false" : "true"));
+    box.appendChild(b);
+  });
+
+  const many = queue.length > 1;
+  $("queueInfo").hidden = !many;
+  $("queueInfo").textContent = many ? queue.length + " entries left to review" : "";
+  $("skipBtn").hidden = !many;
+  $("confirmSub").textContent = item.person
+    ? "Fix anything that landed wrong."
+    : "Add a name, then fix anything else that landed wrong.";
+
+  show("confirm");
+}
+
+$("cPerson").addEventListener("input", renderPicker);
+
+$("skipBtn").addEventListener("click", () => {
+  queue.shift();
+  if(queue.length) openConfirm();
+  else { show("capture"); toast("Done reviewing."); }
+});
+
+$("saveBtn").addEventListener("click", () => {
+  const name = $("cPerson").value.trim();
+  if(!name) return toast("Who is this about?");
+  const text = $("cText").value.trim();
+  if(!text) return toast("The note is empty.");
+
+  const person = ensurePerson(name);
+  const tags = [...$("cTags").querySelectorAll('[aria-pressed="true"]')]
+    .map(b => TAGS.find(t => t.label === b.textContent).id);
+
+  const note = {
+    id: uid(),
+    personId: person.id,
+    date: $("cDate").value || todayISO(),
+    text,
+    raw: queue[0] ? queue[0].raw : text,
+    tags,
+    saw: $("cSaw").checked,
+    loop: $("cLoop").checked,
+    resolved: false,
+    created: Date.now()
+  };
+
+  // a new note on a person closes their oldest open loop only if you say so later,
+  // so nothing auto-resolves here.
+  db.notes.push(note);
+  save();
+  refreshBadge();
+
+  queue.shift();
+  if(queue.length){
+    openConfirm();
+  }else{
+    $("captureText").value = "";
+    $("bulkText").value = "";
+    show("capture");
+    toast("Filed under " + person.name + ".");
+  }
+});
+
+/* ---------------- people list ---------------- */
+$("sortRecent").addEventListener("click", () => { sortMode = "recent"; renderPeople(); });
+$("sortAlpha").addEventListener("click", () => { sortMode = "alpha"; renderPeople(); });
+$("search").addEventListener("input", renderPeople);
+
+function renderPeople(){
+  $("sortRecent").setAttribute("aria-pressed", sortMode === "recent" ? "true" : "false");
+  $("sortAlpha").setAttribute("aria-pressed", sortMode === "alpha" ? "true" : "false");
+
+  const q = $("search").value.trim().toLowerCase();
+  let list = db.people.slice();
+
+  if(q){
+    list = list.filter(p => {
+      if(p.name.toLowerCase().includes(q)) return true;
+      return notesFor(p.id).some(n => n.text.toLowerCase().includes(q));
+    });
+  }
+
+  if(sortMode === "alpha") list.sort((a,b) => a.name.localeCompare(b.name));
+  else list.sort((a,b) => (lastNoted(b.id) || "").localeCompare(lastNoted(a.id) || ""));
+
+  const ul = $("peopleListEl");
+  ul.innerHTML = "";
+  list.forEach(p => {
+    const li = document.createElement("li");
+    const btn = document.createElement("button");
+    const loops = openLoops(p.id).length;
+    const days = agoDays(lastNoted(p.id));
+    let when = "no notes";
+    if(days === 0) when = "today";
+    else if(days === 1) when = "1 day ago";
+    else if(days < 60) when = days + " days ago";
+    else if(isFinite(days)) when = Math.round(days/30) + " months ago";
+
+    btn.innerHTML = '<span class="pname">' + esc(p.name) +
+      (loops ? '<span class="dot" title="' + loops + ' to follow up"></span>' : '') +
+      '</span><span class="pmeta">' + when + '</span>';
+    btn.addEventListener("click", () => openProfile(p.id));
+    li.appendChild(btn);
+    ul.appendChild(li);
+  });
+
+  $("peopleEmpty").hidden = list.length > 0;
+  if(q && !list.length) $("peopleEmpty").textContent = "Nothing matches that.";
+  else $("peopleEmpty").textContent = "No one yet. Capture your first note and they will show up here.";
+}
+
+function esc(s){
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* ---------------- profile ---------------- */
+const FACTS = [
+  { id:"met",       label:"How we met",  type:"text", full:true, ph:"Swing class, 2019" },
+  { id:"closeness", label:"Closeness",   type:"select", opts:["","Acquaintance","Work friend","Friend","Close friend","Family"] },
+  { id:"energy",    label:"Energy",      type:"select", opts:["","Introvert","Extrovert","Somewhere between"] },
+  { id:"enneagram", label:"Enneagram",   type:"select", opts:["","1","2","3","4","5","6","7","8","9"] },
+  { id:"birthday",  label:"Birthday",    type:"text", ph:"Mar 14" }
+];
+
+function renderCats(pid){
+  const p = db.people.find(x => x.id === pid);
+  const cb = $("pCats");
+  cb.innerHTML = "";
+
+  const q = $("pSearch").value.trim().toLowerCase();
+  const all = notesFor(pid).filter(n => !q || n.text.toLowerCase().includes(q));
+  let anyCat = false;
+
+  function buildCard(label, mine, mode, forceOpen){
+    anyCat = true;
+    const card = document.createElement("div");
+    card.className = "catcard" + (forceOpen || q ? " open" : "");
+
+    const head = document.createElement("button");
+    head.className = "cathead";
+    const now = mode === "current"
+      ? esc(mine[0].text)
+      : esc(mine.slice(0,3).map(n => n.text).join(" / "));
+    head.innerHTML = '<span><span class="catname">' + esc(label) + '</span>' +
+      '<span class="catnow">' + now + '</span></span>' +
+      '<span class="catcount">' + mine.length + '</span>';
+    head.addEventListener("click", () => card.classList.toggle("open"));
+    card.appendChild(head);
+
+    const hist = document.createElement("div");
+    hist.className = "cathist";
+    mine.forEach(n => hist.appendChild(noteRow(n, pid, q)));
+    card.appendChild(hist);
+    cb.appendChild(card);
+  }
+
+  TAGS.forEach(t => {
+    const mine = all.filter(n => n.tags.includes(t.id));
+    if(mine.length) buildCard(t.label, mine, t.mode, false);
+  });
+
+  const loose = all.filter(n => !n.tags.length);
+  if(loose.length) buildCard("Untagged", loose, "current", true);
+
+  if(!anyCat){
+    const e = document.createElement("div");
+    e.className = "empty";
+    e.textContent = q
+      ? "No notes on " + p.name + " match that."
+      : "No notes on " + p.name + " yet.";
+    cb.appendChild(e);
+  }
+}
+
+function openProfile(pid){
+  const reopening = profileId === pid;
+  profileId = pid;
+  if(!reopening) $("pSearch").value = "";
+  const p = db.people.find(x => x.id === pid);
+  if(!p) return;
+
+  $("pTitle").textContent = p.name;
+  const seen = lastSeen(pid);
+  const noted = lastNoted(pid);
+  $("pSub").textContent = [
+    noted ? "Last noted " + prettyDate(noted) : "No notes yet",
+    seen ? "last seen " + prettyDate(seen) : null
+  ].filter(Boolean).join(", ");
+
+  // open loops
+  const loops = openLoops(pid);
+  const lb = $("pLoops");
+  lb.innerHTML = "";
+  loops.forEach(n => {
+    const d = document.createElement("div");
+    d.className = "card flagged";
+    d.innerHTML = '<div class="loop">Ask about this</div><div class="histtext">' + esc(n.text) + '</div>' +
+      '<div class="histdate" style="margin-top:6px">' + prettyDate(n.date) + '</div>';
+    const act = document.createElement("div");
+    act.className = "histacts";
+    const done = document.createElement("button");
+    done.textContent = "Mark closed";
+    done.addEventListener("click", () => { n.resolved = true; save(); refreshBadge(); openProfile(pid); });
+    act.appendChild(done);
+    d.appendChild(act);
+    lb.appendChild(d);
+  });
+
+  // facts
+  const fb = $("pFacts");
+  fb.innerHTML = "";
+  FACTS.forEach(f => {
+    const lab = document.createElement("label");
+    lab.className = "fld" + (f.full ? " full" : "");
+    const sp = document.createElement("span");
+    sp.textContent = f.label;
+    lab.appendChild(sp);
+    let input;
+    if(f.type === "select"){
+      input = document.createElement("select");
+      f.opts.forEach(o => {
+        const opt = document.createElement("option");
+        opt.value = o;
+        opt.textContent = o === "" ? "Not sure yet" : o;
+        input.appendChild(opt);
+      });
+    }else{
+      input = document.createElement("input");
+      input.type = "text";
+      input.placeholder = f.ph || "";
+    }
+    input.value = p[f.id] || "";
+    input.addEventListener("change", () => { p[f.id] = input.value; save(); });
+    lab.appendChild(input);
+    fb.appendChild(lab);
+  });
+
+  renderCats(pid);
+
+  // merge options
+  const sel = $("mergeSel");
+  sel.innerHTML = '<option value="">Pick someone</option>';
+  db.people.filter(x => x.id !== pid).sort((a,b) => a.name.localeCompare(b.name)).forEach(x => {
+    const o = document.createElement("option");
+    o.value = x.id; o.textContent = x.name;
+    sel.appendChild(o);
+  });
+
+  show("profile");
+}
+
+function mark(text, q){
+  const safe = esc(text);
+  if(!q) return safe;
+  const rx = new RegExp("(" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "ig");
+  return safe.replace(rx, '<mark>$1</mark>');
+}
+
+function noteRow(n, pid, q){
+  const row = document.createElement("div");
+  row.className = "hist";
+  const tagline = n.tags.map(t => TAGNAME[t]).join(", ");
+  row.innerHTML = '<div class="histdate">' + prettyDate(n.date) +
+    (n.saw ? " · saw them" : "") + (tagline ? " · " + esc(tagline) : "") + '</div>' +
+    '<div class="histtext">' + mark(n.text, q) + '</div>';
+
+  const acts = document.createElement("div");
+  acts.className = "histacts";
+
+  const ed = document.createElement("button");
+  ed.textContent = "Edit";
+  ed.addEventListener("click", () => {
+    const v = prompt("Edit note", n.text);
+    if(v !== null && v.trim()){ n.text = v.trim(); save(); openProfile(pid); }
+  });
+  acts.appendChild(ed);
+
+  if(n.loop){
+    const tg = document.createElement("button");
+    tg.textContent = n.resolved ? "Reopen" : "Mark closed";
+    tg.addEventListener("click", () => { n.resolved = !n.resolved; save(); refreshBadge(); openProfile(pid); });
+    acts.appendChild(tg);
+  }else{
+    const fl = document.createElement("button");
+    fl.textContent = "Flag to follow up";
+    fl.addEventListener("click", () => { n.loop = true; n.resolved = false; save(); refreshBadge(); openProfile(pid); });
+    acts.appendChild(fl);
+  }
+
+  const del = document.createElement("button");
+  del.className = "warn";
+  del.textContent = "Delete";
+  del.addEventListener("click", () => {
+    if(!confirm("Delete this note?")) return;
+    db.notes = db.notes.filter(x => x.id !== n.id);
+    save(); refreshBadge(); openProfile(pid);
+  });
+  acts.appendChild(del);
+
+  row.appendChild(acts);
+  return row;
+}
+
+$("pSearch").addEventListener("input", () => { if(profileId) renderCats(profileId); });
+
+$("mergeBtn").addEventListener("click", () => {
+  const target = $("mergeSel").value;
+  if(!target) return toast("Pick who to merge into.");
+  const from = db.people.find(p => p.id === profileId);
+  const into = db.people.find(p => p.id === target);
+  if(!from || !into) return;
+  if(!confirm("Move all of " + from.name + "'s notes into " + into.name + "?")) return;
+
+  db.notes.forEach(n => { if(n.personId === from.id) n.personId = into.id; });
+  FACTS.forEach(f => { if(!into[f.id] && from[f.id]) into[f.id] = from[f.id]; });
+  db.people = db.people.filter(p => p.id !== from.id);
+  save();
+  toast("Merged into " + into.name + ".");
+  openProfile(into.id);
+});
+
+$("delPersonBtn").addEventListener("click", () => {
+  const p = db.people.find(x => x.id === profileId);
+  if(!p) return;
+  if(!confirm("Delete " + p.name + " and every note on them? This cannot be undone.")) return;
+  db.notes = db.notes.filter(n => n.personId !== p.id);
+  db.people = db.people.filter(x => x.id !== p.id);
+  save(); refreshBadge(); renderPeople(); show("people");
+  toast("Deleted.");
+});
+
+/* ---------------- follow ups ---------------- */
+function renderLoops(){
+  const box = $("loopList");
+  box.innerHTML = "";
+  const loops = openLoops(null).sort((a,b) => a.date.localeCompare(b.date));
+
+  loops.forEach(n => {
+    const p = db.people.find(x => x.id === n.personId);
+    const d = document.createElement("div");
+    d.className = "card flagged";
+    d.innerHTML = '<div class="loop">' + esc(p ? p.name : "Unknown") + '</div>' +
+      '<div class="histtext">' + esc(n.text) + '</div>' +
+      '<div class="histdate" style="margin-top:6px">Flagged ' + prettyDate(n.date) +
+      ' · ' + agoDays(n.date) + ' days ago</div>';
+
+    const acts = document.createElement("div");
+    acts.className = "histacts";
+    const done = document.createElement("button");
+    done.textContent = "Mark closed";
+    done.addEventListener("click", () => { n.resolved = true; save(); refreshBadge(); renderLoops(); });
+    acts.appendChild(done);
+    const go = document.createElement("button");
+    go.textContent = "Open " + (p ? p.name : "person");
+    go.addEventListener("click", () => openProfile(n.personId));
+    acts.appendChild(go);
+    d.appendChild(acts);
+    box.appendChild(d);
+  });
+
+  $("loopEmpty").hidden = loops.length > 0;
+}
+
+function refreshBadge(){
+  const n = openLoops(null).length;
+  const b = $("loopBadge");
+  b.textContent = n;
+  b.hidden = n === 0;
+}
+
+/* ---------------- export ---------------- */
+$("exportBtn").addEventListener("click", async () => {
+  const lines = [];
+  db.people.slice().sort((a,b) => a.name.localeCompare(b.name)).forEach(p => {
+    lines.push("== " + p.name + " ==");
+    FACTS.forEach(f => { if(p[f.id]) lines.push(f.label + ": " + p[f.id]); });
+    notesFor(p.id).slice().reverse().forEach(n => {
+      lines.push(n.date + (n.saw ? " (saw them)" : "") +
+        (n.tags.length ? " [" + n.tags.map(t => TAGNAME[t]).join(", ") + "]" : "") +
+        (n.loop && !n.resolved ? " [follow up]" : "") + " - " + n.text);
+    });
+    lines.push("");
+  });
+  const txt = lines.join("\n");
+  try{
+    await navigator.clipboard.writeText(txt);
+    toast("Copied.");
+  }catch(e){
+    const w = window.open("", "_blank");
+    if(w){ w.document.write("<pre>" + esc(txt) + "</pre>"); }
+    else toast("Could not copy. Allow clipboard access.");
+  }
+});
+
+/* ---------------- installable ---------------- */
+(function manifest(){
+  const icon = "data:image/svg+xml;base64," + btoa(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">' +
+    '<rect width="512" height="512" rx="110" fill="#3F6B52"/>' +
+    '<g fill="none" stroke="#F7FAF7" stroke-width="30" stroke-linecap="round">' +
+    '<rect x="199" y="112" width="114" height="200" rx="57"/>' +
+    '<path d="M140 290a116 116 0 0 0 232 0"/><path d="M256 406v56"/></g></svg>');
+  const m = {
+    name:"Circle", short_name:"Circle", start_url:".", display:"standalone",
+    background_color:"#E9EAE4", theme_color:"#E9EAE4",
+    icons:[{src:icon, sizes:"512x512", type:"image/svg+xml", purpose:"any"}]
+  };
+  const link = document.createElement("link");
+  link.rel = "manifest";
+  link.href = URL.createObjectURL(new Blob([JSON.stringify(m)], {type:"application/manifest+json"}));
+  document.head.appendChild(link);
+  const apple = document.createElement("link");
+  apple.rel = "apple-touch-icon";
+  apple.href = icon;
+  document.head.appendChild(apple);
+})();
+
+/* ---------------- boot ---------------- */
+load();
+refreshBadge();
+renderPeople();
+</script>
+</body>
+</html>
