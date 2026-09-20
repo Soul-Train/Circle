@@ -569,121 +569,115 @@ document.querySelectorAll("[data-back]").forEach(b =>
 /* ---------------- voice ---------------- */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-const SILENCE_MS = 5000;
+/* ===== Listening in rounds =====
+   Continuous mode is what caused the repeating text on Android: Chrome re-delivers earlier
+   segments in later events, and any attempt to assemble them stacks the sentence on itself.
+   Single utterance mode fixes that and brings a worse problem, because it ends at the first
+   pause, so pausing for breath ended the recording.
+
+   So each round is single utterance, and when a round ends on its own the finished sentence is
+   banked and a new round starts. Nothing stacks, because every round returns one clean sentence
+   and banked text is never re-delivered. Listening stops when you tap, or when the silence runs
+   long enough that you have clearly finished. */
+
+const REC_QUIET_MS = 10000;
 
 let rec = null;
-let wantListening = false;
-let committed = "";      // text we are sure about: earlier sessions plus this session's finals
-let sessionFinal = "";   // finals from the session running right now
-let silenceTimer = null, restartTimer = null;
+let recOn = false;
+let recBase = "";    // sentences banked from finished rounds
+let recFinal = "";   // recBase plus this round's best result
+let recQuiet = null;
 
 const setHint = m => { $("micHint").textContent = m; };
 
-function micIdle(msg){
-  wantListening = false;
-  clearTimeout(silenceTimer);
-  clearTimeout(restartTimer);
+function showHeard(interim){
+  $("captureText").value = (recFinal + " " + (interim || "")).replace(/\s+/g," ").trim();
+}
+
+function armQuiet(){
+  clearTimeout(recQuiet);
+  recQuiet = setTimeout(() => {
+    if(recOn){ stopRec("Stopped after a pause. Tap to add more."); }
+  }, REC_QUIET_MS);
+}
+
+function stopRec(msg){
+  recOn = false;
+  clearTimeout(recQuiet);
+  try{ if(rec) rec.stop(); }catch(e){}
   $("micBtn").classList.remove("live");
+  $("micBtn").setAttribute("aria-label","Start voice capture");
   setHint(msg || "Tap and start talking");
 }
 
-function armSilence(){
-  clearTimeout(silenceTimer);
-  silenceTimer = setTimeout(() => {
-    if(!wantListening) return;
-    wantListening = false;
-    try{ rec.stop(); }catch(e){}
-    micIdle("Stopped after a pause. Tap to add more.");
-  }, SILENCE_MS);
-}
-
-// Drop an overlap between what we already have and what just came back, so a
-// recognizer that repeats the start of a phrase cannot double it up.
-function joinNoRepeat(base, add){
-  base = base.trim(); add = add.trim();
-  if(!base) return add;
-  if(!add) return base;
-  const max = Math.min(base.length, add.length);
-  for(let n = max; n > 3; n--){
-    if(base.slice(-n).toLowerCase() === add.slice(0, n).toLowerCase()){
-      return (base + add.slice(n)).replace(/\s+/g, " ").trim();
-    }
-  }
-  return (base + " " + add).replace(/\s+/g, " ").trim();
-}
-
-function startInApp(){
-  if(!rec) return;
-  wantListening = true;
-  committed = $("captureText").value.trim();
-  sessionFinal = "";
-  try{ rec.start(); }catch(err){ /* onstart will fire */ }
-}
-
-if(SR){
+function beginRound(){
   rec = new SR();
-  rec.continuous = true;
+  rec.continuous = false;
   rec.interimResults = true;
-  rec.lang = "en-US";
-
-  rec.onstart = () => {
-    $("micBtn").classList.add("live");
-    setHint("Listening. Pause for a few seconds, or tap to finish.");
-    armSilence();
-  };
+  rec.lang = navigator.language || "en-US";
 
   rec.onresult = e => {
-    let fin = "", interim = "";
+    // Take the single best final rather than joining a list. Belt and braces: if a browser
+    // still hands back a growing chain where each piece repeats the one before, keep the
+    // longest rather than gluing them together.
+    let best = "", interim = "";
     for(let i = 0; i < e.results.length; i++){
-      const t = e.results[i][0].transcript;
-      if(e.results[i].isFinal) fin += t + " "; else interim += t + " ";
+      const r = e.results[i], t = (r[0] && r[0].transcript) || "";
+      if(r.isFinal){ if(t.length > best.length) best = t; }
+      else if(t.length > interim.length) interim = t;
     }
-    sessionFinal = fin;
-    $("captureText").value = joinNoRepeat(joinNoRepeat(committed, fin), interim);
-    armSilence();
+    recFinal = (recBase + " " + best).trim();
+    showHeard(interim.trim());
+    armQuiet();   // you are still talking, so the clock starts again
   };
 
-  rec.onerror = e => {
-    if(e.error === "no-speech" || e.error === "aborted") return;
-    micIdle(e.error === "not-allowed"
-      ? "Microphone blocked. Allow it in your browser settings."
+  // Silence is not a failure here, it is what a pause looks like from the inside, so it is
+  // left to the round below to restart.
+  rec.onerror = ev => {
+    const err = ev && ev.error;
+    if(err === "no-speech" || err === "aborted") return;
+    stopRec(err === "not-allowed" || err === "service-not-allowed"
+      ? "Microphone blocked. Allow it in your browser settings, or type below."
       : "Voice stopped. Tap to try again.");
   };
 
+  // The usual exit is a pause, not the end of what you were saying, so bank it and go again.
   rec.onend = () => {
-    // Only settled text carries forward. Folding a half-finished guess in here
-    // was what made words repeat when the session restarted.
-    committed = joinNoRepeat(committed, sessionFinal);
-    sessionFinal = "";
-    $("captureText").value = committed;
-    if(!wantListening){ micIdle(); return; }
-    restartTimer = setTimeout(() => {
-      if(!wantListening) return;
-      try{ rec.start(); }catch(err){ micIdle("Voice stopped. Tap to try again."); }
-    }, 200);
+    if(!recOn) return;          // you tapped done, already handled
+    recBase = recFinal;
+    try{ rec.start(); }catch(e){ stopRec("Voice stopped. Tap to try again."); }
   };
+
+  try{ rec.start(); return true; }catch(e){ return false; }
+}
+
+function startRec(){
+  if(!SR){ setHint("Voice is not supported in this browser. Type below instead."); return; }
+  if(recOn){ stopRec("Saved. Tap to add more."); return; }
+
+  // Carry forward anything already in the box rather than talking over it.
+  recBase = $("captureText").value.trim();
+  recFinal = recBase;
+
+  if(!beginRound()){ setHint("The microphone would not start here. Type below instead."); return; }
+  recOn = true;
+  armQuiet();
+  $("micBtn").classList.add("live");
+  $("micBtn").setAttribute("aria-label","Stop voice capture");
+  setHint("Listening. Tap when you are done.");
 }
 
 if(!SR){
   setHint("Voice is not supported in this browser. Type below instead.");
   $("micBtn").disabled = true;
 }
-
-$("micBtn").addEventListener("click", () => {
-  if(wantListening){
-    wantListening = false;
-    try{ rec.stop(); }catch(e){}
-    micIdle("Saved. Tap to add more.");
-    return;
-  }
-  startInApp();
-});
+$("micBtn").addEventListener("click", startRec);
 
 /* ---------------- capture -> confirm ---------------- */
 $("reviewBtn").addEventListener("click", () => {
   const txt = $("captureText").value.trim();
   if(!txt) return toast("Nothing to file yet.");
-  if(wantListening){ wantListening = false; try{ rec.stop(); }catch(e){} micIdle(); }
+  if(recOn) stopRec();
   queue = [parseOne(txt)];
   openConfirm();
 });
