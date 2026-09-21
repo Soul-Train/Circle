@@ -22,6 +22,10 @@
   --accent-soft:#E2EAE3;
   --flag:#A8412A;
   --flag-soft:#F5E3DD;
+  --c-work:#3B6A8F;   --c-work-soft:#E1EAF2;
+  --c-home:#5F8A3A;   --c-home-soft:#E6EEDA;
+  --c-life:#B07F1E; --c-life-soft:#F4EAD3;
+  --c-ask:#A8412A;    --c-ask-soft:#F5E3DD;
   --radius:14px;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
@@ -114,34 +118,81 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .rvhead{font-size:.8rem;color:var(--muted);font-weight:700;margin:16px 0 8px;
   text-transform:uppercase;letter-spacing:.04em}
 
-.askcard{border:1px solid var(--flag);background:var(--flag-soft);border-radius:var(--radius);
-  padding:13px;margin-bottom:6px}
-.askhead{font-size:.7rem;font-weight:700;color:var(--flag);margin:0 0 8px;letter-spacing:.06em}
-.askrow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.asktext{font-size:.95rem;line-height:1.45;margin:0}
-.askx{color:var(--flag);font-size:1.15rem;line-height:1;padding:0 2px;flex:none}
-.askdate{font-size:.72rem;color:var(--muted);margin:2px 0 9px}
-.askrow:last-of-type + .askdate{margin-bottom:0}
 .askwho{font-size:.78rem;font-weight:700;color:var(--flag);margin-bottom:4px}
 
-.standrow{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
-.standlab{font-size:.72rem;color:var(--muted);width:58px;flex:none;padding-top:3px;font-weight:600}
-.standtext{font-size:.95rem;line-height:1.45;margin:0}
-.standtext.empty{color:var(--muted)}
-.standdate{font-size:.72rem;color:var(--muted);margin:2px 0 0}
-.standhist{color:var(--muted);flex:none;padding:0 4px;font-size:1rem}
+.box{display:flex;gap:10px;align-items:baseline;border-radius:10px;padding:9px 11px;margin-bottom:6px}
+.box.c-work{background:var(--c-work-soft)}
+.box.c-home{background:var(--c-home-soft)}
+.box.c-life{background:var(--c-life-soft)}
+.boxlab{font-size:.72rem;font-weight:700;width:46px;flex:none}
+.box.c-work .boxlab{color:var(--c-work)}
+.box.c-home .boxlab{color:var(--c-home)}
+.box.c-life .boxlab{color:var(--c-life)}
+.boxtext{flex:1;font-size:.92rem;line-height:1.4;cursor:pointer}
+.boxtext.empty{color:var(--muted);font-style:italic}
+.boxwrap{margin-bottom:6px}
+.boxwrap .box{margin-bottom:0}
+.boxinput{flex:1;min-width:0;border:none;border-bottom:1px solid currentColor;background:transparent;
+  border-radius:0;padding:0 0 2px;font-size:.92rem;font-family:inherit}
+.boxinput:focus{outline:none}
+.boxhistlist{padding:6px 11px 4px 67px}
+.boxhistrow{font-size:.84rem;line-height:1.4;padding:4px 0;color:var(--muted)}
+.boxhistdate{display:inline-block;min-width:88px;font-size:.74rem;font-weight:600}
+.noteedit{width:100%;font-size:.95rem;line-height:1.6;border:1px solid var(--accent);border-radius:10px;
+  background:var(--card);padding:9px 10px;resize:none;overflow:hidden;font-family:inherit;display:block}
+.armed{color:var(--flag)!important;font-weight:700}
+.boxhist{color:var(--muted);flex:none;font-size:1.1rem;padding:4px 8px;margin:-4px -6px -4px 0}
+
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 16px}
+.fchip{font-size:.8rem;font-weight:700;padding:6px 13px;border-radius:999px;
+  border:1px solid var(--line);background:var(--card);color:var(--muted)}
+.fchip.c-work{color:var(--c-work)}
+.fchip.c-home{color:var(--c-home)}
+.fchip.c-life{color:var(--c-life)}
+.fchip.c-ask{color:var(--c-ask)}
+.fchip.on{border-color:transparent}
+.fchip.c-all.on{background:var(--accent);color:#F7FAF7}
+.fchip.c-work.on{background:var(--c-work-soft)}
+.fchip.c-home.on{background:var(--c-home-soft)}
+.fchip.c-life.on{background:var(--c-life-soft)}
+.fchip.c-ask.on{background:var(--c-ask-soft)}
+
+.cl{cursor:pointer;border-radius:3px}
+.cl .tagged{padding-bottom:1px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.cl.picking{background:var(--card);outline:1.5px solid var(--muted);outline-offset:1px}
+.cl.hit{background:#F2E3B0}
+.picker-pop{margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--card)}
+.pickphrase{font-size:.82rem;color:var(--muted);margin:0 0 8px;font-style:italic}
+.pickdone{font-size:.8rem;font-weight:700;color:var(--accent);margin-left:auto;padding:6px 4px}
+.tlpiece{font-size:.95rem;line-height:1.55;margin:0 0 4px}
+.tlpiece mark{background:#F2E3B0;color:inherit;border-radius:3px;padding:0 2px}
+.fldlab{font-size:.8rem;color:var(--muted);font-weight:600;margin:-2px 0 5px}
+.tagpreview{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:12px 13px;margin-bottom:12px;min-height:44px}
+.tagpreview .tltext{font-size:.95rem}
+.tagpreview .empty{padding:0;font-size:.85rem}
+.tlcount{font-size:.76rem;color:var(--muted);margin:6px 0 0}
+
+.selbar{position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:65;
+  background:var(--ink);color:var(--paper);border-radius:999px;padding:11px 20px;
+  font-size:.88rem;font-weight:700;max-width:90vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .tl{display:flex;gap:11px}
 .tlrail{flex:none;display:flex;flex-direction:column;align-items:center;padding-top:5px}
 .tldot{width:7px;height:7px;border-radius:50%;background:var(--line);flex:none}
 .tldot.now{background:var(--accent)}
+.tldot.c-work{background:var(--c-work)}
+.tldot.c-home{background:var(--c-home)}
+.tldot.c-life{background:var(--c-life)}
+.tldot.c-ask{background:var(--c-ask)}
 .tlline{width:1px;flex:1;background:var(--line);margin-top:4px}
 .tlbody{flex:1;padding-bottom:18px;min-width:0}
 .tldate{font-size:.72rem;color:var(--muted);margin:0 0 4px}
-.tltext{font-size:.95rem;line-height:1.5;margin:0;word-wrap:break-word}
+.tltext{font-size:.95rem;line-height:1.75;margin:0;word-wrap:break-word}
 .tltext mark{background:#F2E3B0;color:inherit;border-radius:3px;padding:0 2px}
-.tlacts{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px}
-.tlacts button{font-size:.76rem;color:var(--muted);font-weight:600}
+.tlacts{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;margin-left:-8px}
+.tlacts button{font-size:.8rem;color:var(--muted);font-weight:600;padding:10px 8px;min-height:40px}
 .tlacts button.warn{color:var(--flag)}
 
 .chips{display:flex;flex-wrap:wrap;gap:7px}
@@ -176,8 +227,14 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .backlink{color:var(--muted);font-size:.88rem;font-weight:600;padding:4px 0;margin-bottom:8px;display:inline-block}
 
 .facts{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:18px}
-.facts label{margin:0}
-.facts label.full{grid-column:1 / -1}
+.facts .fld{margin:0}
+.facts .full{grid-column:1 / -1}
+.facts .fld.inline{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 0}
+.facts .fld.inline > span{margin:0}
+.seg.small{display:inline-flex;flex:none;border-radius:999px}
+.seg.small button{flex:none;padding:5px 12px;font-size:.76rem}
+.factlist{width:100%;background:var(--card);border:1px solid var(--line);border-radius:11px;
+  padding:10px 12px;line-height:1.5;resize:none;overflow:hidden;font-family:inherit;display:block;min-height:46px}
 
 .catcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:9px;overflow:hidden}
 .cathead{width:100%;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:13px 14px;text-align:left}
@@ -190,8 +247,8 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .hist:last-child{border-bottom:none}
 .histdate{font-size:.76rem;color:var(--muted);font-weight:600;margin-bottom:3px}
 .histtext{font-size:.94rem;line-height:1.5}
-.histacts{display:flex;gap:14px;margin-top:7px}
-.histacts button{font-size:.8rem;color:var(--muted);font-weight:600}
+.histacts{display:flex;gap:4px;margin-top:2px;margin-left:-8px;flex-wrap:wrap}
+.histacts button{font-size:.82rem;color:var(--muted);font-weight:600;padding:10px 8px;min-height:40px}
 .histacts button.warn{color:var(--flag)}
 
 .histtext mark{background:#F2E3B0;color:inherit;border-radius:3px;padding:0 2px}
@@ -280,13 +337,13 @@ nav .badge{position:absolute;transform:translate(15px,-4px);background:var(--fla
       <textarea id="cText" class="big"></textarea>
     </label>
 
-    <label class="toggle"><input type="checkbox" id="cAsk">
-      <span>Add to their ask list<small>Something to raise next time you talk.</small></span>
-    </label>
+    <p class="fldlab">Tap a piece to tag it</p>
+    <div class="tagpreview" id="cPreview"></div>
 
     <div class="row" style="margin-top:16px">
       <button class="btn ghost" id="skipBtn" hidden>Skip</button>
-      <button class="btn block" id="saveBtn">Save note</button>
+      <button class="btn" id="saveBtn" style="flex:1">Save</button>
+      <button class="btn ghost" id="saveOpenBtn" style="flex:1">Save, open</button>
     </div>
   </section>
 
@@ -314,7 +371,6 @@ nav .badge{position:absolute;transform:translate(15px,-4px);background:var(--fla
     <h1 id="pTitle">Name</h1>
     <p class="sub" id="pSub"></p>
 
-    <div id="pAsk"></div>
     <div id="pStand"></div>
 
     <div class="search">
@@ -322,8 +378,9 @@ nav .badge{position:absolute;transform:translate(15px,-4px);background:var(--fla
       <input type="text" id="pSearch" placeholder="Search these notes" autocomplete="off">
     </div>
 
-    <p class="rvhead">Timeline</p>
+    <div class="filters" id="pFilters"></div>
     <div id="pTimeline"></div>
+    <p class="tlcount" id="pCount"></p>
 
     <hr class="divider">
     <h2>About them</h2>
@@ -345,7 +402,7 @@ nav .badge{position:absolute;transform:translate(15px,-4px);background:var(--fla
     <p class="sub">Things worth raising next time you talk.</p>
     <div id="pendList"></div>
     <div id="loopList"></div>
-    <div class="empty" id="loopEmpty" hidden>Nothing here yet. Add something to a person's ask list and it shows up.</div>
+    <div class="empty" id="loopEmpty" hidden>Nothing here yet. Tag a phrase in any note as ask and it shows up.</div>
     <hr class="divider">
     <button class="btn quiet" id="exportBtn">Copy everything as plain text</button>
   </section>
@@ -367,13 +424,14 @@ nav .badge{position:absolute;transform:translate(15px,-4px);background:var(--fla
   </button>
 </nav>
 
+<button class="selbar" id="selBar" hidden>Tag selection</button>
 <div class="toast" id="toast"></div>
 
 <script>
 "use strict";
 
 /* ---------------- storage ---------------- */
-const VERSION = "0.9";
+const VERSION = "0.9.5";
 const KEY = "circle.v1";
 let db = { people: [], notes: [], pending: [] };
 
@@ -417,7 +475,11 @@ function load(){
       text: rows.map(r => r.text).join(" ").replace(/\s+/g," ").trim(),
       saw: rows.some(r => r.saw),
       created: first.created || Date.now(),
-      raw: first.raw || ""
+      raw: first.raw || "",
+      // This rebuild runs on every load, so anything a note carries must be
+      // copied across here or it is silently dropped.
+      clauseTags: Object.assign({}, ...rows.map(r => r.clauseTags || {})),
+      marks: rows.flatMap(r => Array.isArray(r.marks) ? r.marks : [])
     };
     // Anything flagged under the old model becomes something to ask about.
     const person = db.people.find(x => x.id === merged.personId);
@@ -430,6 +492,41 @@ function load(){
     rebuilt.push(merged);
   });
   db.notes = rebuilt;
+
+  db.notes.forEach(n => {
+    if(!n.clauseTags || typeof n.clauseTags !== "object") n.clauseTags = {};
+    if(!Array.isArray(n.marks)) n.marks = [];
+    // "lately" became "life", since lately was really just the newest note
+    const swap = arr => arr.map(x => x === "lately" ? "life" : x);
+    Object.keys(n.clauseTags).forEach(k => { n.clauseTags[k] = swap(n.clauseTags[k]); });
+    n.marks.forEach(m => { m.cats = swap(m.cats); });
+  });
+  db.people.forEach(p => {
+    if(p.slots && p.slots.lately && !p.slots.life){ p.slots.life = p.slots.lately; }
+    if(p.slots) delete p.slots.lately;
+    if(p.slotHist && p.slotHist.lately && !p.slotHist.life){ p.slotHist.life = p.slotHist.lately; }
+    if(p.slotHist) delete p.slotHist.lately;
+  });
+
+  // The ask list is now just a category. Anything on an old list gets tagged
+  // where it appears in a note, or becomes its own note if it can't be found.
+  db.people.forEach(p => {
+    (p.asks || []).forEach(q => {
+      const hit = db.notes.find(n => n.personId === p.id &&
+        n.text.toLowerCase().includes(q.text.toLowerCase()));
+      if(hit){
+        if(!hit.marks.some(m => m.phrase.toLowerCase() === q.text.toLowerCase()))
+          hit.marks.push({ id: uid(), phrase: q.text, cats: ["ask"] });
+      }else{
+        db.notes.push({ id: uid(), personId: p.id, date: q.date || todayISO(), text: q.text,
+          saw: false, created: Date.now(), raw: "", clauseTags: {}, marks: [],
+        });
+        const n = db.notes[db.notes.length - 1];
+        n.marks.push({ id: uid(), phrase: q.text, cats: ["ask"] });
+      }
+    });
+    delete p.asks;
+  });
 }
 function save(){
   try{ localStorage.setItem(KEY, JSON.stringify(db)); }
@@ -441,9 +538,17 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7
 const SLOTS = [
   { id:"work",   label:"work"   },
   { id:"home",   label:"home"   },
-  { id:"lately", label:"lately" }
+  { id:"life",   label:"life"   }
 ];
 const SLOTNAME = Object.fromEntries(SLOTS.map(x => [x.id, x.label]));
+// Phrase categories. The first three match the summary boxes so a filter shows
+// the evidence behind each box. Ask folds the old ask list into the same system.
+const CATS = [
+  { id:"work",   label:"work"   },
+  { id:"home",   label:"home"   },
+  { id:"life",   label:"life"   },
+  { id:"ask",    label:"ask"    }
+];
 
 const ASK_HINTS = ["interview","waiting to hear","coming up","next week","next month","applying","will find out","should ask","hoping to hear","results","find out","decision","offer","due in","expecting"];
 
@@ -548,7 +653,7 @@ function ensurePerson(name){
   const found = findPerson(name);
   if(found) return found;
   const p = { id:uid(), name:name.trim(), met:"", closeness:"", energy:"", enneagram:"", birthday:"",
-              slots:{}, slotHist:{}, asks:[] };
+              slots:{}, slotHist:{} };
   db.people.push(p);
   return p;
 }
@@ -564,15 +669,63 @@ function lastSeen(pid){
   const ns = notesFor(pid).filter(n => n.saw);
   return ns.length ? ns[0].date : "";
 }
+/* ---------------- phrases ----------------
+   A note is split into clauses at . , ; ! ? so every comma you dictate becomes a
+   tappable piece. Clause tags are keyed by the clause's own text rather than its
+   position, so editing one part of a note leaves the other tags where they were. */
+
+const clauseKey = t => t.toLowerCase().replace(/[.,;!?]+$/,"").replace(/\s+/g," ").trim();
+
+function clausesOf(text){
+  const out = [];
+  const rx = /[^.,;!?]+[.,;!?]*/g;
+  let m;
+  while((m = rx.exec(text))){
+    const raw = m[0];
+    const lead = raw.length - raw.replace(/^\s+/,"").length;
+    const start = m.index + lead;
+    const end = m.index + raw.replace(/\s+$/,"").length;
+    if(end > start) out.push({ start, end, key: clauseKey(text.slice(start, end)) });
+  }
+  return out;
+}
+
+// Free highlights are stored as the phrase itself and found again on each
+// render. Robust to edits elsewhere in the note, lost only if that phrase changes.
+function markRange(text, mk){
+  const i = text.toLowerCase().indexOf(mk.phrase.toLowerCase());
+  return i < 0 ? null : { start: i, end: i + mk.phrase.length };
+}
+
+// Every tagged piece of a note for one category, in reading order.
+function piecesOf(n, cat){
+  const out = [];
+  clausesOf(n.text).forEach(c => {
+    if((n.clauseTags[c.key] || []).includes(cat))
+      out.push({ start: c.start, text: n.text.slice(c.start, c.end) });
+  });
+  n.marks.forEach(mk => {
+    if(!mk.cats.includes(cat)) return;
+    const r = markRange(n.text, mk);
+    if(r) out.push({ start: r.start, text: n.text.slice(r.start, r.end) });
+  });
+  out.sort((a,b) => a.start - b.start);
+  // a highlight inside an already tagged clause would show twice
+  return out.filter((x, i) => !out.some((y, j) => j !== i &&
+    y.text.length > x.text.length && y.text.includes(x.text)));
+}
+
 function asksFor(pid){
-  const p = db.people.find(x => x.id === pid);
-  return p && Array.isArray(p.asks) ? p.asks : [];
+  const out = [];
+  notesFor(pid).forEach(n => piecesOf(n, "ask").forEach(pc => out.push({ note: n, text: pc.text })));
+  return out;
 }
 function allAsks(){
   const out = [];
-  db.people.forEach(p => (p.asks||[]).forEach(q => out.push({ person:p, ask:q })));
+  db.people.forEach(p => asksFor(p.id).forEach(a => out.push({ person: p, ...a })));
   return out;
 }
+
 function prettyDate(iso){
   if(!iso) return "";
   const [y,m,d] = iso.split("-").map(Number);
@@ -600,8 +753,30 @@ function show(name){
     if(b.dataset.go === name) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current");
   });
   current = name;
+  $("selBar").hidden = true;
   window.scrollTo(0,0);
 }
+/* Native confirm/prompt/alert are blocked when the page runs inside another page,
+   which is how the claude.ai link serves it. So destructive actions ask for a
+   second tap instead: the button changes its own label and waits a few seconds. */
+function confirmTap(btn, ask, action){
+  if(btn.dataset.armed === "1"){
+    clearTimeout(btn._t);
+    btn.dataset.armed = "";
+    action();
+    return;
+  }
+  btn.dataset.orig = btn.textContent;
+  btn.dataset.armed = "1";
+  btn.textContent = ask;
+  btn.classList.add("armed");
+  btn._t = setTimeout(() => {
+    btn.dataset.armed = "";
+    btn.textContent = btn.dataset.orig;
+    btn.classList.remove("armed");
+  }, 3500);
+}
+
 function toast(msg){
   const el = $("toast");
   el.textContent = msg;
@@ -736,19 +911,56 @@ $("micBtn").addEventListener("click", startRec);
 
 let pendingId = null;
 
+// Tags set on the check screen before the note exists. Same shape as a saved
+// note's, so the profile renderer can be reused as-is.
+let draft = { id: "draft", text: "", clauseTags: {}, marks: [] };
+let draftPick = null;
+
+function renderPreview(){
+  draft.text = $("cText").value;
+  const box = $("cPreview");
+  box.innerHTML = "";
+  if(!draft.text.trim()){
+    const e = document.createElement("div");
+    e.className = "empty";
+    e.textContent = "The note will appear here, split at commas and periods.";
+    box.appendChild(e);
+    return;
+  }
+  // an edit can remove the clause that was open
+  if(draftPick && draftPick.kind === "clause" &&
+     !clausesOf(draft.text).some(c => c.key === draftPick.key)) draftPick = null;
+
+  box.appendChild(tagTextEl(draft, "", draftPick, key => {
+    const same = draftPick && draftPick.kind === "clause" && draftPick.key === key;
+    draftPick = same ? null : { noteId: "draft", kind: "clause", key };
+    renderPreview();
+  }));
+  if(draftPick){
+    box.appendChild(tagPickerEl(draft, draftPick,
+      () => renderPreview(),
+      () => { draftPick = null; renderPreview(); }));
+  }
+}
+$("cText").addEventListener("input", renderPreview);
+
 function openConfirm(){
   const item = queue[0];
   $("cPerson").value = item.person;
   renderPicker();
   $("cDate").value = item.date;
   $("cText").value = item.text;
+  draft = { id: "draft", text: item.text, clauseTags: {}, marks: [] };
+  draftPick = null;
+  renderPreview();
   $("cSaw").checked = item.saw;
-  $("cAsk").checked = item.ask;
 
   const many = queue.length > 1;
   $("queueInfo").hidden = !many;
   $("queueInfo").textContent = many ? queue.length + " entries left to review" : "";
   $("skipBtn").hidden = !many;
+  $("saveOpenBtn").hidden = many;
+  saveOpenLabel();
   $("confirmSub").textContent = item.person
     ? "Fix anything that landed wrong."
     : "Add a name, then fix anything else that landed wrong.";
@@ -768,7 +980,7 @@ function renderPicker(){
     const b = document.createElement("button");
     b.type = "button"; b.className = "chip"; b.textContent = p.name;
     b.setAttribute("aria-pressed", typed === p.name.toLowerCase() ? "true" : "false");
-    b.addEventListener("click", () => { $("cPerson").value = p.name; renderPicker(); });
+    b.addEventListener("click", () => { $("cPerson").value = p.name; renderPicker(); saveOpenLabel(); });
     box.appendChild(b);
   });
   const exact = typed && db.people.some(p => p.name.toLowerCase() === typed);
@@ -825,7 +1037,16 @@ $("skipBtn").addEventListener("click", () => {
   else { show("capture"); toast("Done reviewing."); }
 });
 
-$("saveBtn").addEventListener("click", () => {
+function saveOpenLabel(){
+  const first = $("cPerson").value.trim().split(/\s+/)[0];
+  $("saveOpenBtn").textContent = first ? "Save, open " + first : "Save, open";
+}
+$("cPerson").addEventListener("input", saveOpenLabel);
+
+$("saveBtn").addEventListener("click", () => saveNote(false));
+$("saveOpenBtn").addEventListener("click", () => saveNote(true));
+
+function saveNote(openAfter){
   const name = $("cPerson").value.trim();
   if(!name) return toast("Who is this about?");
   const text = $("cText").value.trim();
@@ -837,10 +1058,11 @@ $("saveBtn").addEventListener("click", () => {
   db.notes.push({
     id: uid(), personId: person.id, date, text,
     saw: $("cSaw").checked, created: Date.now(),
-    raw: queue[0] ? queue[0].raw : text
+    raw: queue[0] ? queue[0].raw : text,
+    clauseTags: Object.fromEntries(Object.entries(draft.clauseTags)
+      .filter(([k]) => clausesOf(text).some(c => c.key === k))),
+    marks: draft.marks.filter(mk => text.toLowerCase().includes(mk.phrase.toLowerCase()))
   });
-
-  if($("cAsk").checked) person.asks.push({ id: uid(), text, date });
 
   if(pendingId){
     db.pending = db.pending.filter(x => x.id !== pendingId);
@@ -853,10 +1075,14 @@ $("saveBtn").addEventListener("click", () => {
     openConfirm();
   }else{
     $("captureText").value = ""; $("bulkText").value = "";
-    show("capture");
-    toast("Filed under " + person.name + ".");
+    if(openAfter){
+      openProfile(person.id);
+    }else{
+      show("capture");
+      toast("Filed under " + person.name + ".");
+    }
   }
-});
+}
 
 /* ---------------- people list ---------------- */
 $("sortRecent").addEventListener("click", () => { sortMode = "recent"; renderPeople(); });
@@ -911,107 +1137,102 @@ function esc(s){
 }
 
 /* ---------------- profile ---------------- */
+// Ordered by how often each one matters right before you see someone.
+// Enneagram is off the screen, not deleted: anything already filled in is kept.
 const FACTS = [
-  { id:"met",       label:"How we met",  type:"text", full:true, ph:"Swing class, 2019" },
-  { id:"closeness", label:"Closeness",   type:"select", opts:["","Acquaintance","Work friend","Friend","Close friend","Family"] },
-  { id:"energy",    label:"Energy",      type:"select", opts:["","Introvert","Extrovert","Somewhere between"] },
-  { id:"enneagram", label:"Enneagram",   type:"select", opts:["","1","2","3","4","5","6","7","8","9"] },
-  { id:"birthday",  label:"Birthday",    type:"text", ph:"Mar 14" }
-];
+  { id:"likes",     label:"Likes",         type:"list", full:true, ph:"One per line" },
+  { id:"dislikes",  label:"Dislikes",      type:"list", full:true, ph:"One per line" },
+  { id:"gifts",     label:"Gift ideas",    type:"list", full:true, ph:"Things they have mentioned wanting" },
+  { id:"birthday",  label:"Birthday",      type:"text", ph:"Mar 14" },
+  { id:"from",      label:"From",          type:"text", ph:"Pittsburgh" },
+  { id:"love",      label:"Love language", type:"select",
+    opts:["","Words of affirmation","Quality time","Acts of service","Gifts","Physical touch"] },
+  { id:"closeness", label:"Closeness",     type:"select", opts:["","Acquaintance","Work friend","Friend","Close friend","Family"] },
+  { id:"energy",    label:"Energy",        type:"toggle", full:true, opts:["Introvert","Extrovert"] },
+  { id:"met",       label:"How we met",    type:"text", full:true, ph:"Swing class, 2019" }
+]
 
-function renderAskCard(pid){
-  const p = db.people.find(x => x.id === pid);
-  const box = $("pAsk");
-  box.innerHTML = "";
-  if(!p.asks.length) return;
-
-  const card = document.createElement("div");
-  card.className = "askcard";
-  const h = document.createElement("p");
-  h.className = "askhead";
-  h.textContent = "ASK ABOUT";
-  card.appendChild(h);
-
-  p.asks.forEach(q => {
-    const row = document.createElement("div");
-    row.className = "askrow";
-    const t = document.createElement("p");
-    t.className = "asktext";
-    t.textContent = q.text;
-    const x = document.createElement("button");
-    x.className = "askx";
-    x.textContent = "\u00d7";
-    x.setAttribute("aria-label", "Remove from ask list");
-    x.addEventListener("click", () => {
-      p.asks = p.asks.filter(a => a.id !== q.id);
-      save(); openProfile(pid);
-    });
-    row.appendChild(t); row.appendChild(x);
-    const d = document.createElement("p");
-    d.className = "askdate";
-    d.textContent = "came up " + prettyDate(q.date);
-    card.appendChild(row); card.appendChild(d);
-  });
-  box.appendChild(card);
-}
+let editingSlot = null, openHist = null;
 
 function renderStanding(pid){
   const p = db.people.find(x => x.id === pid);
   const box = $("pStand");
   box.innerHTML = "";
-
-  const h = document.createElement("p");
-  h.className = "rvhead";
-  h.style.marginTop = "16px";
-  h.textContent = "Where things stand";
-  box.appendChild(h);
+  let toFocus = null;
 
   SLOTS.forEach(sl => {
     const cur = p.slots[sl.id];
     const hist = p.slotHist[sl.id] || [];
 
+    const wrap = document.createElement("div");
+    wrap.className = "boxwrap";
     const row = document.createElement("div");
-    row.className = "standrow";
+    row.className = "box c-" + sl.id;
 
     const lab = document.createElement("span");
-    lab.className = "standlab";
+    lab.className = "boxlab";
     lab.textContent = sl.label;
+    row.appendChild(lab);
 
-    const mid = document.createElement("div");
-    mid.style.flex = "1";
-    const t = document.createElement("p");
-    t.className = "standtext" + (cur ? "" : " empty");
-    t.textContent = cur ? cur.text : "not set";
-    mid.appendChild(t);
-    if(cur){
-      const d = document.createElement("p");
-      d.className = "standdate";
-      d.textContent = prettyDate(cur.date) + (hist.length ? "  \u00b7  " + hist.length + " earlier" : "");
-      mid.appendChild(d);
-    }
-    mid.addEventListener("click", () => {
-      const v = prompt("Where things stand on " + sl.label, cur ? cur.text : "");
-      if(v === null) return;
-      setSlot(pid, sl.id, v.trim(), todayISO());
-      openProfile(pid);
-    });
-
-    row.appendChild(lab); row.appendChild(mid);
-
-    if(hist.length){
-      const hb = document.createElement("button");
-      hb.className = "standhist";
-      hb.textContent = "\u22ef";
-      hb.setAttribute("aria-label", "Earlier values");
-      hb.addEventListener("click", () => {
-        const lines = hist.slice().reverse()
-          .map(x => prettyDate(x.date) + "  " + x.text).join("\n\n");
-        alert(sl.label + "\n\n" + lines);
+    if(editingSlot === sl.id){
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.className = "boxinput";
+      inp.value = cur ? cur.text : "";
+      inp.placeholder = "Where things stand";
+      let done = false;
+      const finish = (keep, now) => {
+        if(done) return; done = true;
+        if(keep) setSlot(pid, sl.id, inp.value.trim(), todayISO());
+        editingSlot = null;
+        // On a phone, blur fires when your finger lands on something else, before
+        // that tap completes. Redrawing right away would pull the target out from
+        // under your finger, so a blur waits long enough for the tap to land.
+        if(now) renderStanding(pid);
+        else setTimeout(() => { if(editingSlot === null) renderStanding(pid); }, 320);
+      };
+      inp.addEventListener("keydown", e => {
+        if(e.key === "Enter"){ e.preventDefault(); finish(true, true); }
+        if(e.key === "Escape"){ finish(false, true); }
       });
-      row.appendChild(hb);
+      inp.addEventListener("blur", () => finish(true, false));
+      row.appendChild(inp);
+      toFocus = inp;
+    }else{
+      const t = document.createElement("span");
+      t.className = "boxtext" + (cur ? "" : " empty");
+      t.textContent = cur ? cur.text : "tap to add";
+      t.addEventListener("click", () => { editingSlot = sl.id; openHist = null; renderStanding(pid); });
+      row.appendChild(t);
+
+      if(hist.length){
+        const hb = document.createElement("button");
+        hb.className = "boxhist";
+        hb.textContent = "\u22ef";
+        hb.setAttribute("aria-label", "Earlier " + sl.label);
+        hb.addEventListener("click", () => {
+          openHist = openHist === sl.id ? null : sl.id;
+          renderStanding(pid);
+        });
+        row.appendChild(hb);
+      }
     }
-    box.appendChild(row);
+    wrap.appendChild(row);
+
+    if(openHist === sl.id && hist.length){
+      const list = document.createElement("div");
+      list.className = "boxhistlist";
+      hist.slice().reverse().forEach(x => {
+        const r = document.createElement("div");
+        r.className = "boxhistrow";
+        r.innerHTML = '<span class="boxhistdate">' + esc(prettyDate(x.date)) + '</span>' + esc(x.text);
+        list.appendChild(r);
+      });
+      wrap.appendChild(list);
+    }
+    box.appendChild(wrap);
   });
+  if(toFocus){ toFocus.focus(); try{ toFocus.select(); }catch(e){} }
 }
 
 // The old value is kept rather than overwritten, so a slot doubles as a record of
@@ -1029,32 +1250,190 @@ function setSlot(pid, slot, text, date){
   save();
 }
 
+let tlFilter = "all";
+let editingNote = null;
+let pick = null;          // { noteId, kind: "clause" | "mark", key | phrase }
+let selPhrase = null, selNoteId = null;
+
+function underline(el, cats){
+  const order = CATS.map(c => c.id).filter(id => cats.includes(id));
+  if(!order.length) return;
+  el.style.boxShadow = order.map((id, i) =>
+    "inset 0 -" + (2 + i*2) + "px 0 var(--c-" + id + ")").join(", ");
+  el.classList.add("tagged");
+}
+
+function renderFilters(pid){
+  const box = $("pFilters");
+  box.innerHTML = "";
+  const notes = notesFor(pid);
+  [{ id:"all", label:"all" }, ...CATS].forEach(c => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "fchip c-" + c.id + (tlFilter === c.id ? " on" : "");
+    let label = c.label;
+    if(c.id === "ask"){
+      const n = asksFor(pid).length;
+      if(n) label += " " + n;
+    }
+    b.textContent = label;
+    b.addEventListener("click", () => {
+      tlFilter = c.id; pick = null;
+      renderFilters(pid); renderTimeline(pid);
+    });
+    box.appendChild(b);
+  });
+}
+
+function toggleCat(n, target, cat){
+  if(target.kind === "clause"){
+    const cur = n.clauseTags[target.key] || [];
+    const next = cur.includes(cat) ? cur.filter(x => x !== cat) : [...cur, cat];
+    if(next.length) n.clauseTags[target.key] = next; else delete n.clauseTags[target.key];
+  }else{
+    let mk = n.marks.find(m => m.phrase.toLowerCase() === target.phrase.toLowerCase());
+    if(!mk){ mk = { id: uid(), phrase: target.phrase, cats: [] }; n.marks.push(mk); }
+    mk.cats = mk.cats.includes(cat) ? mk.cats.filter(x => x !== cat) : [...mk.cats, cat];
+    if(!mk.cats.length) n.marks = n.marks.filter(m => m !== mk);
+  }
+  save();
+}
+
+function currentCats(n, target){
+  if(target.kind === "clause") return n.clauseTags[target.key] || [];
+  const mk = n.marks.find(m => m.phrase.toLowerCase() === target.phrase.toLowerCase());
+  return mk ? mk.cats : [];
+}
+
+/* Shared by the profile tree and the check screen. `target` is whatever is
+   currently open for tagging on this note, `onTap(key)` handles a clause tap. */
+function tagTextEl(n, q, target, onTap){
+  const wrap = document.createElement("p");
+  wrap.className = "tltext";
+  wrap.dataset.nid = n.id;
+  const marks = n.marks.map(mk => ({ mk, r: markRange(n.text, mk) })).filter(x => x.r);
+  let pos = 0;
+
+  clausesOf(n.text).forEach(c => {
+    if(c.start > pos) wrap.appendChild(document.createTextNode(n.text.slice(pos, c.start)));
+
+    const span = document.createElement("span");
+    span.className = "cl";
+    const ctext = n.text.slice(c.start, c.end);
+    if(q && ctext.toLowerCase().includes(q)) span.classList.add("hit");
+    if(target && target.kind === "clause" && target.key === c.key) span.classList.add("picking");
+
+    // break the clause wherever a highlight starts or ends, so each run can
+    // carry its own set of underlines
+    const cuts = new Set([c.start, c.end]);
+    marks.forEach(({r}) => {
+      if(r.start > c.start && r.start < c.end) cuts.add(r.start);
+      if(r.end > c.start && r.end < c.end) cuts.add(r.end);
+    });
+    const pts = [...cuts].sort((a,b) => a - b);
+    const ctags = n.clauseTags[c.key] || [];
+    for(let i = 0; i < pts.length - 1; i++){
+      const a = pts[i], b = pts[i+1];
+      const cats = new Set(ctags);
+      marks.forEach(({mk, r}) => { if(r.start <= a && r.end >= b) mk.cats.forEach(x => cats.add(x)); });
+      const run = document.createElement("span");
+      run.textContent = n.text.slice(a, b);
+      underline(run, [...cats]);
+      span.appendChild(run);
+    }
+
+    span.addEventListener("click", () => {
+      const sel = window.getSelection();
+      if(sel && !sel.isCollapsed) return;   // finishing a highlight, not a tap
+      onTap(c.key);
+    });
+    wrap.appendChild(span);
+    pos = c.end;
+  });
+  if(pos < n.text.length) wrap.appendChild(document.createTextNode(n.text.slice(pos)));
+  return wrap;
+}
+
+function tagPickerEl(n, target, onChange, onDone){
+  const d = document.createElement("div");
+  d.className = "picker-pop";
+  if(target.kind === "mark"){
+    const h = document.createElement("p");
+    h.className = "pickphrase";
+    h.textContent = "\u201c" + target.phrase + "\u201d";
+    d.appendChild(h);
+  }
+  const row = document.createElement("div");
+  row.className = "chips";
+  const on = currentCats(n, target);
+  CATS.forEach(c => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "fchip c-" + c.id + (on.includes(c.id) ? " on" : "");
+    b.textContent = c.label;
+    b.addEventListener("click", () => { toggleCat(n, target, c.id); onChange(); });
+    row.appendChild(b);
+  });
+  const done = document.createElement("button");
+  done.type = "button";
+  done.className = "pickdone";
+  done.textContent = "done";
+  done.addEventListener("click", onDone);
+  row.appendChild(done);
+  d.appendChild(row);
+  return d;
+}
+
+function noteTextEl(n, q){
+  const target = pick && pick.noteId === n.id ? pick : null;
+  return tagTextEl(n, q, target, key => {
+    const same = target && target.kind === "clause" && target.key === key;
+    pick = same ? null : { noteId: n.id, kind: "clause", key };
+    renderTimeline(profileId);
+  });
+}
+
+function pickerEl(n){
+  return tagPickerEl(n, pick,
+    () => { renderFilters(profileId); renderTimeline(profileId); },
+    () => { pick = null; renderTimeline(profileId); });
+}
+
 function renderTimeline(pid){
   const p = db.people.find(x => x.id === pid);
   const box = $("pTimeline");
   box.innerHTML = "";
+  let focusAfter = null;
+  $("pCount").textContent = "";
 
   const q = $("pSearch").value.trim().toLowerCase();
-  const all = notesFor(pid).filter(n => !q || n.text.toLowerCase().includes(q));
+  const notes = notesFor(pid).filter(n => !q || n.text.toLowerCase().includes(q));
 
-  if(!all.length){
+  // in a filtered view each note shrinks to just its matching pieces
+  const rows = tlFilter === "all"
+    ? notes.map(n => ({ n, pieces: null }))
+    : notes.map(n => ({ n, pieces: piecesOf(n, tlFilter) })).filter(x => x.pieces.length);
+
+  if(!rows.length){
     const e = document.createElement("div");
     e.className = "empty";
-    e.textContent = q ? "Nothing matches that." : "No notes on " + p.name + " yet.";
+    e.textContent = q ? "Nothing matches that."
+      : tlFilter !== "all" ? "Nothing tagged " + tlFilter + " yet. Tap a phrase in any note to tag it."
+      : "No notes on " + p.name + " yet.";
     box.appendChild(e);
     return;
   }
 
-  all.forEach((n, i) => {
+  rows.forEach(({n, pieces}, i) => {
     const row = document.createElement("div");
     row.className = "tl";
 
     const rail = document.createElement("div");
     rail.className = "tlrail";
     const dot = document.createElement("i");
-    dot.className = "tldot" + (i === 0 ? " now" : "");
+    dot.className = "tldot" + (i === 0 ? " now" : "") + (tlFilter !== "all" ? " c-" + tlFilter : "");
     rail.appendChild(dot);
-    if(i < all.length - 1){
+    if(i < rows.length - 1){
       const line = document.createElement("i");
       line.className = "tlline";
       rail.appendChild(line);
@@ -1065,61 +1444,129 @@ function renderTimeline(pid){
     const d = document.createElement("p");
     d.className = "tldate";
     d.textContent = prettyDate(n.date) + (n.saw ? "  \u00b7  saw them" : "");
-    const t = document.createElement("p");
-    t.className = "tltext";
-    t.innerHTML = mark(n.text, q);
-    body.appendChild(d); body.appendChild(t);
+    body.appendChild(d);
 
-    const acts = document.createElement("div");
-    acts.className = "tlacts";
-
-    SLOTS.forEach(sl => {
-      const b = document.createElement("button");
-      b.textContent = "\u2192 " + sl.label;
-      b.title = "Make this the current " + sl.label;
-      b.addEventListener("click", () => {
-        // Prefilled so a long note can be trimmed down to the line that matters.
-        const v = prompt("Current " + sl.label + "?", n.text);
-        if(v === null || !v.trim()) return;
-        setSlot(pid, sl.id, v.trim(), n.date);
-        openProfile(pid);
+    if(pieces){
+      pieces.forEach(pc => {
+        const t = document.createElement("p");
+        t.className = "tlpiece";
+        t.innerHTML = mark(pc.text, q);
+        body.appendChild(t);
       });
-      acts.appendChild(b);
-    });
+    }else if(editingNote === n.id){
+      // Inline edit. Tags stay on every clause whose words are unchanged.
+      const acts = document.createElement("div");
+      acts.className = "tlacts";
+      const ta = document.createElement("textarea");
+      ta.className = "noteedit";
+      ta.value = n.text;
+      const grow = () => { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; };
+      ta.addEventListener("input", grow);
+      body.appendChild(ta);
+      // run once the tree is actually on the page, or focus does nothing
+      focusAfter = () => {
+        grow();
+        ta.focus();
+        // the keyboard takes the bottom half of the screen; keep save visible
+        setTimeout(() => { grow(); acts.scrollIntoView({ block: "center", behavior: "smooth" }); }, 350);
+      };
 
-    const ask = document.createElement("button");
-    ask.textContent = "\u2192 ask";
-    ask.addEventListener("click", () => {
-      const v = prompt("What should you ask about?", n.text);
-      if(v === null || !v.trim()) return;
-      p.asks.push({ id: uid(), text: v.trim(), date: n.date });
-      save(); openProfile(pid);
-    });
-    acts.appendChild(ask);
+      const sv = document.createElement("button");
+      sv.textContent = "save";
+      sv.style.color = "var(--accent)";
+      sv.addEventListener("click", () => {
+        const v = ta.value.trim();
+        if(!v) return toast("A note cannot be empty. Delete it instead.");
+        n.text = v;
+        editingNote = null; pick = null;
+        save(); refreshProfile(pid);
+      });
+      acts.appendChild(sv);
+      const cn = document.createElement("button");
+      cn.textContent = "cancel";
+      cn.addEventListener("click", () => { editingNote = null; renderTimeline(pid); });
+      acts.appendChild(cn);
+      body.appendChild(acts);
+    }else{
+      body.appendChild(noteTextEl(n, q));
+      if(pick && pick.noteId === n.id) body.appendChild(pickerEl(n));
 
-    const ed = document.createElement("button");
-    ed.textContent = "edit";
-    ed.addEventListener("click", () => {
-      const v = prompt("Edit note", n.text);
-      if(v !== null && v.trim()){ n.text = v.trim(); save(); openProfile(pid); }
-    });
-    acts.appendChild(ed);
+      const acts = document.createElement("div");
+      acts.className = "tlacts";
+      const ed = document.createElement("button");
+      ed.textContent = "edit";
+      ed.addEventListener("click", () => { editingNote = n.id; pick = null; renderTimeline(pid); });
+      acts.appendChild(ed);
+      const del = document.createElement("button");
+      del.className = "warn";
+      del.textContent = "delete";
+      del.addEventListener("click", () => confirmTap(del, "tap again to delete", () => {
+        db.notes = db.notes.filter(x => x.id !== n.id);
+        pick = null; save(); refreshProfile(pid);
+      }));
+      acts.appendChild(del);
+      body.appendChild(acts);
+    }
 
-    const del = document.createElement("button");
-    del.className = "warn";
-    del.textContent = "delete";
-    del.addEventListener("click", () => {
-      if(!confirm("Delete this note?")) return;
-      db.notes = db.notes.filter(x => x.id !== n.id);
-      save(); openProfile(pid);
-    });
-    acts.appendChild(del);
-
-    body.appendChild(acts);
     row.appendChild(rail); row.appendChild(body);
     box.appendChild(row);
   });
+
+  if(focusAfter) focusAfter();
+
+  if(tlFilter !== "all"){
+    $("pCount").textContent = rows.length + " of " + notesFor(pid).length +
+      (notesFor(pid).length === 1 ? " note has " : " notes have ") + tlFilter + " in them";
+  }
 }
+
+// keeps the dot on the People list honest after tagging something ask
+function renderPeopleDot(){ /* the list re-renders whenever it is shown */ }
+
+/* Free highlight: long-press and drag over any words, then tap the bar. */
+document.addEventListener("selectionchange", () => {
+  const bar = $("selBar");
+  const sel = window.getSelection();
+  const onProfile = current === "profile" && tlFilter === "all";
+  if(!sel || sel.isCollapsed || !(onProfile || current === "confirm")){ bar.hidden = true; return; }
+  const host = el => {
+    const e = el && (el.nodeType === 1 ? el : el.parentElement);
+    return e ? e.closest(".tltext") : null;
+  };
+  const a = host(sel.anchorNode), b = host(sel.focusNode);
+  const txt = sel.toString().replace(/\s+/g," ").trim();
+  if(!a || a !== b || txt.length < 2){ bar.hidden = true; return; }
+  selPhrase = txt;
+  selNoteId = a.dataset.nid;
+  bar.textContent = "Tag \u201c" + (txt.length > 26 ? txt.slice(0,26) + "\u2026" : txt) + "\u201d";
+  bar.hidden = false;
+});
+// Keep the selection alive while the bar is being pressed.
+$("selBar").addEventListener("pointerdown", e => e.preventDefault());
+$("selBar").addEventListener("mousedown", e => e.preventDefault());
+$("selBar").addEventListener("click", () => {
+  if(selNoteId === "draft"){
+    if(!selPhrase || draft.text.toLowerCase().indexOf(selPhrase.toLowerCase()) < 0){
+      toast("Could not tag that selection. Try a smaller stretch.");
+      return;
+    }
+    draftPick = { noteId: "draft", kind: "mark", phrase: selPhrase };
+    try{ window.getSelection().removeAllRanges(); }catch(e){}
+    $("selBar").hidden = true;
+    renderPreview();
+    return;
+  }
+  const n = db.notes.find(x => x.id === selNoteId);
+  if(!n || !selPhrase) return;
+  if(n.text.toLowerCase().indexOf(selPhrase.toLowerCase()) < 0){
+    toast("Could not tag that selection. Try a smaller stretch.");
+    return;
+  }
+  pick = { noteId: n.id, kind: "mark", phrase: selPhrase };
+  try{ window.getSelection().removeAllRanges(); }catch(e){}
+  $("selBar").hidden = true;
+  renderTimeline(profileId);
+});
 
 function mark(text, q){
   const safe = esc(text);
@@ -1128,10 +1575,25 @@ function mark(text, q){
   return safe.replace(rx, '<mark>$1</mark>');
 }
 
+// Redraws the notes part of a profile where you are. Opening a screen scrolls to
+// the top, which is right for arriving and wrong for finishing an edit mid-page.
+function refreshProfile(pid){
+  const p = db.people.find(x => x.id === pid);
+  if(!p) return;
+  const seen = lastSeen(pid), noted = lastNoted(pid);
+  $("pSub").textContent = [
+    noted ? "Last noted " + prettyDate(noted) : "No notes yet",
+    seen ? "last seen " + prettyDate(seen) : null
+  ].filter(Boolean).join(", ");
+  renderFilters(pid);
+  renderTimeline(pid);
+}
+
 function openProfile(pid){
   const reopening = profileId === pid;
   profileId = pid;
-  if(!reopening) $("pSearch").value = "";
+  if(!reopening){ $("pSearch").value = ""; tlFilter = "all"; pick = null;
+                  editingNote = null; editingSlot = null; openHist = null; }
   const p = db.people.find(x => x.id === pid);
   if(!p) return;
 
@@ -1142,19 +1604,64 @@ function openProfile(pid){
     seen ? "last seen " + prettyDate(seen) : null
   ].filter(Boolean).join(", ");
 
-  renderAskCard(pid);
   renderStanding(pid);
+  renderFilters(pid);
   renderTimeline(pid);
 
   const fb = $("pFacts");
   fb.innerHTML = "";
   FACTS.forEach(f => {
-    const lab = document.createElement("label");
+    let lab = document.createElement("label");
     lab.className = "fld" + (f.full ? " full" : "");
     const sp = document.createElement("span");
     sp.textContent = f.label;
     lab.appendChild(sp);
     let input;
+    if(f.type === "toggle"){
+      // Not a <label>: tapping a label's text fires its first button, which
+      // would quietly set Introvert whenever you touched the word Energy.
+      const holder = document.createElement("div");
+      holder.className = lab.className;
+      holder.appendChild(sp);
+      holder.classList.add("inline");
+      lab = holder;
+      // Two options, tap the lit one again to go back to not sure.
+      input = document.createElement("div");
+      input.className = "seg small";
+      input.setAttribute("role", "group");
+      const draw = () => {
+        input.innerHTML = "";
+        f.opts.forEach(o => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.textContent = o;
+          b.setAttribute("aria-pressed", p[f.id] === o ? "true" : "false");
+          b.addEventListener("click", () => {
+            p[f.id] = p[f.id] === o ? "" : o;
+            save(); draw();
+          });
+          input.appendChild(b);
+        });
+      };
+      draw();
+      lab.appendChild(input);
+      fb.appendChild(lab);
+      return;
+    }
+    if(f.type === "list"){
+      input = document.createElement("textarea");
+      input.className = "factlist";
+      input.rows = 2;
+      input.placeholder = f.ph || "";
+      input.value = p[f.id] || "";
+      const grow = () => { input.style.height = "auto"; input.style.height = input.scrollHeight + "px"; };
+      input.addEventListener("input", () => { p[f.id] = input.value; grow(); });
+      input.addEventListener("change", () => { p[f.id] = input.value.replace(/\s+$/,""); save(); });
+      lab.appendChild(input);
+      fb.appendChild(lab);
+      setTimeout(grow, 0);
+      return;
+    }
     if(f.type === "select"){
       input = document.createElement("select");
       f.opts.forEach(o => {
@@ -1182,6 +1689,12 @@ function openProfile(pid){
     sel.appendChild(o);
   });
 
+  ["mergeBtn","delPersonBtn"].forEach(id => {
+    const b = $(id);
+    clearTimeout(b._t); b.dataset.armed = ""; b.classList.remove("armed");
+    if(b.dataset.orig) b.textContent = b.dataset.orig;
+  });
+
   show("profile");
 }
 
@@ -1193,50 +1706,64 @@ $("mergeBtn").addEventListener("click", () => {
   const from = db.people.find(p => p.id === profileId);
   const into = db.people.find(p => p.id === target);
   if(!from || !into) return;
-  if(!confirm("Move all of " + from.name + "'s notes into " + into.name + "?")) return;
+  confirmTap($("mergeBtn"), "tap again to merge", () => doMerge(from, into));
+});
+
+function doMerge(from, into){
 
   db.notes.forEach(n => { if(n.personId === from.id) n.personId = into.id; });
   FACTS.forEach(f => { if(!into[f.id] && from[f.id]) into[f.id] = from[f.id]; });
   SLOTS.forEach(sl => { if(!into.slots[sl.id] && from.slots[sl.id]) into.slots[sl.id] = from.slots[sl.id]; });
-  into.asks = [...into.asks, ...(from.asks || [])];
   db.people = db.people.filter(p => p.id !== from.id);
   save();
   toast("Merged into " + into.name + ".");
   openProfile(into.id);
-});
+}
 
 $("delPersonBtn").addEventListener("click", () => {
   const p = db.people.find(x => x.id === profileId);
   if(!p) return;
-  if(!confirm("Delete " + p.name + " and every note on them? This cannot be undone.")) return;
-  db.notes = db.notes.filter(n => n.personId !== p.id);
-  db.people = db.people.filter(x => x.id !== p.id);
-  save(); refreshBadge(); renderPeople(); show("people");
-  toast("Deleted.");
+  confirmTap($("delPersonBtn"), "tap again, deletes every note", () => {
+    db.notes = db.notes.filter(n => n.personId !== p.id);
+    db.people = db.people.filter(x => x.id !== p.id);
+    save(); renderPeople(); show("people");
+    toast("Deleted.");
+  });
 });
 
 /* ---------------- follow ups ---------------- */
+function untagAsk(n, text){
+  clausesOf(n.text).forEach(c => {
+    if(n.text.slice(c.start, c.end) === text && n.clauseTags[c.key]){
+      n.clauseTags[c.key] = n.clauseTags[c.key].filter(x => x !== "ask");
+      if(!n.clauseTags[c.key].length) delete n.clauseTags[c.key];
+    }
+  });
+  n.marks.forEach(mk => {
+    const r = markRange(n.text, mk);
+    if(r && n.text.slice(r.start, r.end) === text) mk.cats = mk.cats.filter(x => x !== "ask");
+  });
+  n.marks = n.marks.filter(mk => mk.cats.length);
+}
+
 function renderLoops(){
   renderPending();
   const box = $("loopList");
   box.innerHTML = "";
-  const rows = allAsks();
+  const rows = allAsks().sort((a,b) => b.note.date.localeCompare(a.note.date));
 
-  rows.forEach(({person, ask}) => {
+  rows.forEach(({person, note, text}) => {
     const d = document.createElement("div");
     d.className = "card";
     d.innerHTML = '<div class="askwho">' + esc(person.name) + '</div>' +
-      '<div class="histtext">' + esc(ask.text) + '</div>' +
-      '<div class="histdate" style="margin-top:6px">came up ' + prettyDate(ask.date) + '</div>';
+      '<div class="histtext">' + esc(text) + '</div>' +
+      '<div class="histdate" style="margin-top:6px">came up ' + prettyDate(note.date) + '</div>';
 
     const acts = document.createElement("div");
     acts.className = "histacts";
     const done = document.createElement("button");
     done.textContent = "Remove";
-    done.addEventListener("click", () => {
-      person.asks = person.asks.filter(a => a.id !== ask.id);
-      save(); renderLoops();
-    });
+    done.addEventListener("click", () => { untagAsk(note, text); save(); renderLoops(); });
     acts.appendChild(done);
     const go = document.createElement("button");
     go.textContent = "Open " + person.name;
@@ -1281,11 +1808,10 @@ function renderPending(){
     const del = document.createElement("button");
     del.className = "warn";
     del.textContent = "Discard";
-    del.addEventListener("click", () => {
-      if(!confirm("Discard this note?")) return;
+    del.addEventListener("click", () => confirmTap(del, "tap again to discard", () => {
       db.pending = db.pending.filter(x => x.id !== pn.id);
-      save(); refreshBadge(); renderWaiting(); renderLoops();
-    });
+      save(); renderWaiting(); renderLoops();
+    }));
     acts.appendChild(del);
     d.appendChild(acts);
     box.appendChild(d);
@@ -1308,9 +1834,9 @@ $("exportBtn").addEventListener("click", async () => {
     lines.push("== " + p.name + " ==");
     FACTS.forEach(f => { if(p[f.id]) lines.push(f.label + ": " + p[f.id]); });
     SLOTS.forEach(sl => { if(p.slots[sl.id]) lines.push(sl.label + ": " + p.slots[sl.id].text); });
-    (p.asks || []).forEach(q => lines.push("ask: " + q.text));
     notesFor(p.id).slice().reverse().forEach(n => {
       lines.push(n.date + (n.saw ? " (saw them)" : "") + " - " + n.text);
+      CATS.forEach(c => piecesOf(n, c.id).forEach(pc => lines.push("    [" + c.label + "] " + pc.text)));
     });
     lines.push("");
   });
