@@ -25,6 +25,7 @@
   --c-work:#3B6A8F;   --c-work-soft:#E1EAF2;
   --c-home:#5F8A3A;   --c-home-soft:#E6EEDA;
   --c-life:#B07F1E; --c-life-soft:#F4EAD3;
+  --c-health:#75588F; --c-health-soft:#EAE3F1;
   --c-ask:#A8412A;    --c-ask-soft:#F5E3DD;
   --radius:14px;
   box-sizing:border-box;
@@ -124,12 +125,44 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .box.c-work{background:var(--c-work-soft)}
 .box.c-home{background:var(--c-home-soft)}
 .box.c-life{background:var(--c-life-soft)}
+.box.c-health{background:var(--c-health-soft)}
 .boxlab{font-size:.72rem;font-weight:700;width:46px;flex:none}
 .box.c-work .boxlab{color:var(--c-work)}
 .box.c-home .boxlab{color:var(--c-home)}
 .box.c-life .boxlab{color:var(--c-life)}
+.box.c-health .boxlab{color:var(--c-health)}
 .boxtext{flex:1;font-size:.92rem;line-height:1.4;cursor:pointer}
 .boxtext.empty{color:var(--muted);font-style:italic}
+h1.editable{cursor:pointer}
+h1.editable::after{content:"\00a0\270e";font-size:.62em;color:var(--muted);vertical-align:middle}
+.titleedit{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;width:100%;
+  border:none;border-bottom:2px solid var(--accent);border-radius:0;padding:0 0 2px;
+  background:transparent;font-family:inherit;margin-bottom:2px}
+.titleedit:focus{outline:none}
+.standcard{border:1px solid var(--line);background:var(--card);border-radius:var(--radius);
+  padding:4px 12px 12px;margin-bottom:10px}
+.standcard.open{background:transparent;border-color:transparent;padding:0;margin-bottom:6px}
+.standhead{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  padding:14px 0 10px;min-height:48px}
+.standcard.open .standhead{padding:10px 2px}
+.standtitle{font-size:.8rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.standchev{margin-left:auto;color:var(--ink);display:flex;align-items:center;justify-content:center;
+  width:30px;height:30px;margin-right:-4px;border-radius:50%;background:var(--paper);
+  transition:transform .18s ease}
+.standchev svg{width:22px;height:22px}
+.standcard.open .standchev{transform:rotate(180deg);background:transparent}
+.standpills{display:flex;flex-wrap:wrap;gap:6px}
+.spill{font-size:.76rem;font-weight:700;padding:5px 11px;border-radius:999px;
+  border:1px solid var(--line);color:var(--muted);opacity:.65}
+.spill.filled{opacity:1}
+.spill.c-work{color:var(--c-work)}
+.spill.c-home{color:var(--c-home)}
+.spill.c-life{color:var(--c-life)}
+.spill.c-health{color:var(--c-health)}
+.spill.filled.c-work{background:var(--c-work-soft);border-color:transparent}
+.spill.filled.c-home{background:var(--c-home-soft);border-color:transparent}
+.spill.filled.c-life{background:var(--c-life-soft);border-color:transparent}
+.spill.filled.c-health{background:var(--c-health-soft);border-color:transparent}
 .boxwrap{margin-bottom:6px}
 .boxwrap .box{margin-bottom:0}
 .boxinput{flex:1;min-width:0;border:none;border-bottom:1px solid currentColor;background:transparent;
@@ -149,12 +182,14 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .fchip.c-work{color:var(--c-work)}
 .fchip.c-home{color:var(--c-home)}
 .fchip.c-life{color:var(--c-life)}
+.fchip.c-health{color:var(--c-health)}
 .fchip.c-ask{color:var(--c-ask)}
 .fchip.on{border-color:transparent}
 .fchip.c-all.on{background:var(--accent);color:#F7FAF7}
 .fchip.c-work.on{background:var(--c-work-soft)}
 .fchip.c-home.on{background:var(--c-home-soft)}
 .fchip.c-life.on{background:var(--c-life-soft)}
+.fchip.c-health.on{background:var(--c-health-soft)}
 .fchip.c-ask.on{background:var(--c-ask-soft)}
 
 .cl{cursor:pointer;border-radius:3px}
@@ -185,6 +220,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .tldot.c-work{background:var(--c-work)}
 .tldot.c-home{background:var(--c-home)}
 .tldot.c-life{background:var(--c-life)}
+.tldot.c-health{background:var(--c-health)}
 .tldot.c-ask{background:var(--c-ask)}
 .tlline{width:1px;flex:1;background:var(--line);margin-top:4px}
 .tlbody{flex:1;padding-bottom:18px;min-width:0}
@@ -368,7 +404,8 @@ nav .badge{position:absolute;transform:translate(15px,-4px);background:var(--fla
   <!-- ============ PROFILE ============ -->
   <section id="s-profile" class="screen">
     <button class="backlink" data-back="people">&larr; People</button>
-    <h1 id="pTitle">Name</h1>
+    <h1 id="pTitle" class="editable" title="Tap to rename">Name</h1>
+    <input type="text" id="pTitleEdit" class="titleedit" hidden>
     <p class="sub" id="pSub"></p>
 
     <div id="pStand"></div>
@@ -431,7 +468,7 @@ nav .badge{position:absolute;transform:translate(15px,-4px);background:var(--fla
 "use strict";
 
 /* ---------------- storage ---------------- */
-const VERSION = "0.9.5";
+const VERSION = "0.9.8";
 const KEY = "circle.v1";
 let db = { people: [], notes: [], pending: [] };
 
@@ -538,7 +575,8 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7
 const SLOTS = [
   { id:"work",   label:"work"   },
   { id:"home",   label:"home"   },
-  { id:"life",   label:"life"   }
+  { id:"life",   label:"life"   },
+  { id:"health", label:"health" }
 ];
 const SLOTNAME = Object.fromEntries(SLOTS.map(x => [x.id, x.label]));
 // Phrase categories. The first three match the summary boxes so a filter shows
@@ -547,6 +585,7 @@ const CATS = [
   { id:"work",   label:"work"   },
   { id:"home",   label:"home"   },
   { id:"life",   label:"life"   },
+  { id:"health", label:"health" },
   { id:"ask",    label:"ask"    }
 ];
 
@@ -1153,12 +1192,59 @@ const FACTS = [
 ]
 
 let editingSlot = null, openHist = null;
+let standOpen = false;   // the timeline is the point, so the boxes start out of the way
+
+const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" ' +
+  'stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
 
 function renderStanding(pid){
   const p = db.people.find(x => x.id === pid);
   const box = $("pStand");
   box.innerHTML = "";
   let toFocus = null;
+
+  const head = document.createElement("button");
+  head.className = "standhead" + (standOpen ? " open" : "");
+  head.setAttribute("aria-expanded", standOpen ? "true" : "false");
+
+  const title = document.createElement("span");
+  title.className = "standtitle";
+  title.textContent = "Where things stand";
+  head.appendChild(title);
+
+  const chev = document.createElement("span");
+  chev.className = "standchev";
+  chev.innerHTML = CHEV;
+  head.appendChild(chev);
+
+  const wrapHead = document.createElement("div");
+  wrapHead.className = "standcard" + (standOpen ? " open" : "");
+  wrapHead.appendChild(head);
+
+  // Collapsed, name every box rather than only the filled ones. Showing nothing
+  // when they are all empty made the row look like a dead label.
+  if(!standOpen){
+    const pills = document.createElement("div");
+    pills.className = "standpills";
+    SLOTS.forEach(sl => {
+      const filled = !!p.slots[sl.id];
+      const d = document.createElement("span");
+      d.className = "spill c-" + sl.id + (filled ? " filled" : "");
+      d.textContent = sl.label;
+      pills.appendChild(d);
+    });
+    pills.addEventListener("click", () => head.click());
+    wrapHead.appendChild(pills);
+  }
+
+  head.addEventListener("click", () => {
+    standOpen = !standOpen;
+    editingSlot = null; openHist = null;
+    renderStanding(pid);
+  });
+  box.appendChild(wrapHead);
+
+  if(!standOpen) return;
 
   SLOTS.forEach(sl => {
     const cur = p.slots[sl.id];
@@ -1593,11 +1679,14 @@ function openProfile(pid){
   const reopening = profileId === pid;
   profileId = pid;
   if(!reopening){ $("pSearch").value = ""; tlFilter = "all"; pick = null;
-                  editingNote = null; editingSlot = null; openHist = null; }
+                  editingNote = null; editingSlot = null; openHist = null;
+                  standOpen = false; }
   const p = db.people.find(x => x.id === pid);
   if(!p) return;
 
   $("pTitle").textContent = p.name;
+  $("pTitle").hidden = false;
+  $("pTitleEdit").hidden = true;
   const seen = lastSeen(pid), noted = lastNoted(pid);
   $("pSub").textContent = [
     noted ? "Last noted " + prettyDate(noted) : "No notes yet",
@@ -1697,6 +1786,42 @@ function openProfile(pid){
 
   show("profile");
 }
+
+/* Tap the name to rename. Notes travel with the person, not the spelling, so a
+   fixed typo does not strand anything. */
+$("pTitle").addEventListener("click", () => {
+  const p = db.people.find(x => x.id === profileId);
+  if(!p) return;
+  const inp = $("pTitleEdit");
+  inp.value = p.name;
+  $("pTitle").hidden = true;
+  inp.hidden = false;
+  inp.focus();
+  inp.select();
+});
+
+function finishRename(keep){
+  const p = db.people.find(x => x.id === profileId);
+  const inp = $("pTitleEdit");
+  if(inp.hidden) return;
+  if(keep && p){
+    const v = inp.value.trim();
+    if(v && v !== p.name){
+      p.name = v;
+      save();
+      const dupe = db.people.find(x => x.id !== p.id && x.name.toLowerCase() === v.toLowerCase());
+      if(dupe) toast("There is another " + v + ". Merge them below if they are the same person.");
+    }
+  }
+  inp.hidden = true;
+  $("pTitle").hidden = false;
+  if(p) $("pTitle").textContent = p.name;
+}
+$("pTitleEdit").addEventListener("keydown", e => {
+  if(e.key === "Enter"){ e.preventDefault(); finishRename(true); }
+  if(e.key === "Escape") finishRename(false);
+});
+$("pTitleEdit").addEventListener("blur", () => finishRename(true));
 
 $("pSearch").addEventListener("input", () => { if(profileId) renderTimeline(profileId); });
 
